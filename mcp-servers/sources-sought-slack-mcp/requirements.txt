@@ -1,0 +1,16 @@
+# Slack Integration MCP Server Requirements
+mcp>=1.0.0
+
+# Slack SDK
+slack-sdk>=3.27.0
+slack-bolt>=1.18.0
+
+# Web framework for webhooks
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Async support
+aiohttp>=3.9.0
+
+# Utilities
+python-dateutil>=2.8.0
