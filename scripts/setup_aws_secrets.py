@@ -93,22 +93,26 @@ def setup_auth_secrets(secrets_client):
     return create_secret(secrets_client, secret_name, secret_value, description)
 
 
-def setup_communication_secrets(secrets_client):
-    """Set up communication secrets with placeholders"""
+def setup_communication_secrets(secrets_client, slack_client_id=None, slack_client_secret=None, slack_signing_secret=None, slack_verification_token=None):
+    """Set up communication secrets with actual Slack credentials if provided"""
     
     secret_name = "sources-sought-ai/communication"
     secret_value = {
-        "slack_bot_token": "xoxb-YOUR-SLACK-BOT-TOKEN",
-        "slack_app_token": "xapp-YOUR-SLACK-APP-TOKEN",
-        "slack_signing_secret": "YOUR_SLACK_SIGNING_SECRET",
+        "slack_app_id": slack_client_id or "A095JATCKAN",
+        "slack_client_id": slack_client_id or "6923618681559.9188367427362",
+        "slack_client_secret": slack_client_secret or "f0e97f998df1d5c76d96a1360fc72376",
+        "slack_signing_secret": slack_signing_secret or "890795aeecee555aa5d093075db3c47",
+        "slack_verification_token": slack_verification_token or "e7CyqZ9I6ehSkpTlkLhmjacS",
+        "slack_bot_token": "xoxb-YOUR-SLACK-BOT-TOKEN-WHEN-INSTALLED",
+        "slack_app_token": "xapp-YOUR-SLACK-APP-TOKEN-WHEN-INSTALLED",
         "smtp_username": "your-email@gmail.com",
         "smtp_password": "your-app-password",
         "imap_username": "your-email@gmail.com",
         "imap_password": "your-app-password",
         "created_at": datetime.utcnow().isoformat(),
-        "note": "Update these values with your actual communication credentials"
+        "note": "Slack app credentials configured. Bot and app tokens will be available after installation."
     }
-    description = "Slack and email credentials for communication features"
+    description = "Slack app credentials and email settings for communication features"
     
     return create_secret(secrets_client, secret_name, secret_value, description)
 
@@ -206,8 +210,14 @@ def main():
     if arn:
         secrets_created.append(arn)
     
-    # Communication secrets
-    arn = setup_communication_secrets(secrets_client)
+    # Communication secrets (with Slack credentials)
+    arn = setup_communication_secrets(
+        secrets_client,
+        slack_client_id="6923618681559.9188367427362",
+        slack_client_secret="f0e97f998df1d5c76d96a1360fc72376", 
+        slack_signing_secret="890795aeecee555aa5d093075db3c47",
+        slack_verification_token="e7CyqZ9I6ehSkpTlkLhmjacS"
+    )
     if arn:
         secrets_created.append(arn)
     

@@ -510,11 +510,11 @@ class HumanLoopAgent(BaseAgent):
     def __init__(self):
         super().__init__("human-loop", EventSource.HUMAN_LOOP_AGENT)
         
-        if not config.agents.slack_bot_token:
+        if not config.security.slack_bot_token:
             self.logger.warning("Slack bot token not configured - some features will be disabled")
             self.slack = None
         else:
-            self.slack = SlackInterface(config.agents.slack_bot_token)
+            self.slack = SlackInterface(config.security.slack_bot_token)
         
         self.metrics = get_agent_metrics("HumanLoop")
         

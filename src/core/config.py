@@ -148,9 +148,13 @@ class SecurityConfig:
     enable_ip_whitelist: bool = False
     
     # Communication secrets (loaded from Secrets Manager)
+    slack_app_id: Optional[str] = None
+    slack_client_id: Optional[str] = None
+    slack_client_secret: Optional[str] = None
     slack_bot_token: Optional[str] = None
     slack_app_token: Optional[str] = None
     slack_signing_secret: Optional[str] = None
+    slack_verification_token: Optional[str] = None
     smtp_username: Optional[str] = None
     smtp_password: Optional[str] = None
 
@@ -264,9 +268,13 @@ class Config:
             
             # Slack credentials
             if isinstance(slack_creds, dict):
-                self.security.slack_bot_token = slack_creds["slack_bot_token"]
-                self.security.slack_app_token = slack_creds["slack_app_token"]
-                self.security.slack_signing_secret = slack_creds["slack_signing_secret"]
+                self.security.slack_app_id = slack_creds.get("slack_app_id")
+                self.security.slack_client_id = slack_creds.get("slack_client_id")
+                self.security.slack_client_secret = slack_creds.get("slack_client_secret")
+                self.security.slack_bot_token = slack_creds.get("slack_bot_token")
+                self.security.slack_app_token = slack_creds.get("slack_app_token")
+                self.security.slack_signing_secret = slack_creds.get("slack_signing_secret")
+                self.security.slack_verification_token = slack_creds.get("slack_verification_token")
             
             # Email credentials
             if isinstance(email_creds, dict):
