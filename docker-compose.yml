@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Local development stack for Sources Sought AI
+  
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: sources-sought-dynamodb
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "./data"]
+    volumes:
+      - dynamodb_data:/home/dynamodblocal/data
+    working_dir: /home/dynamodblocal
+    environment:
+      - AWS_ACCESS_KEY_ID=dummy
+      - AWS_SECRET_ACCESS_KEY=dummy
+      - AWS_DEFAULT_REGION=us-east-1
+
+  redis:
+    image: redis:7-alpine
+    container_name: sources-sought-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: sources-sought-localstack
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    environment:
+      - SERVICES=s3,sqs,lambda,events,logs
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - localstack_data:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  sources-sought-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: sources-sought-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ENV=development
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
+      - REDIS_URL=redis://redis:6379
+      - AWS_ACCESS_KEY_ID=dummy
+      - AWS_SECRET_ACCESS_KEY=dummy
+      - AWS_DEFAULT_REGION=us-east-1
+    depends_on:
+      - dynamodb-local
+      - redis
+      - localstack
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+
+  sources-sought-web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: sources-sought-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=development-secret-key
+      - API_URL=http://sources-sought-api:8080
+    depends_on:
+      - sources-sought-api
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+
+volumes:
+  dynamodb_data:
+  redis_data:
+  localstack_data:

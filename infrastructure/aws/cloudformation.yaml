@@ -404,6 +404,7 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
       Policies:
         - PolicyName: DynamoDBAccess
           PolicyDocument:
@@ -467,7 +468,45 @@ Resources:
               - Effect: Allow
                 Action:
                   - secretsmanager:GetSecretValue
-                Resource: !Ref APIKeysSecret
+                  - secretsmanager:DescribeSecret
+                Resource:
+                  - !Ref APIKeysSecret
+                  - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:sources-sought-ai/*"
+        - PolicyName: AppConfigAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - appconfig:GetApplication
+                  - appconfig:GetEnvironment
+                  - appconfig:GetConfigurationProfile
+                  - appconfig:GetDeployment
+                  - appconfig:GetConfiguration
+                  - appconfig:StartConfigurationSession
+                Resource:
+                  - !Sub "arn:aws:appconfig:${AWS::Region}:${AWS::AccountId}:application/sources-sought-ai"
+                  - !Sub "arn:aws:appconfig:${AWS::Region}:${AWS::AccountId}:application/sources-sought-ai/*"
+              - Effect: Allow
+                Action:
+                  - appconfigdata:StartConfigurationSession
+                  - appconfigdata:GetLatestConfiguration
+                Resource: "*"
+        - PolicyName: S3SearchIndicesAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub "${DocumentStorageBucket}/*"
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !Ref DocumentStorageBucket
       Tags:
         - Key: Project
           Value: !Ref ProjectName
