@@ -119,6 +119,7 @@ class DatabaseConfig:
     responses_table: str = "responses"
     contacts_table: str = "contacts"
     events_table: str = "events"
+    tasks_table: str = "tasks"
     
     # Event sourcing
     enable_event_sourcing: bool = True

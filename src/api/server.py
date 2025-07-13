@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 from ..core.config import config
 from ..utils.logger import get_logger
 from ..utils.search import search_engine
+from ..utils.task_tracker import task_tracker, create_task, get_task_status
 from ..agents.opportunity_finder import OpportunityFinderAgent
 from ..agents.analyzer import AnalyzerAgent
 from ..agents.response_generator import ResponseGeneratorAgent
@@ -93,9 +94,47 @@ class EmailRequest(BaseModel):
 # Authentication dependency
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Validate JWT token and return user info"""
-    # In production, implement proper JWT validation
-    # For now, just return a mock user
-    return {"user_id": "user123", "email": "user@example.com"}
+    try:
+        import jwt
+        from jwt.exceptions import InvalidTokenError
+        
+        token = credentials.credentials
+        
+        # Get JWT secret from config
+        jwt_secret = config.security.jwt_secret or "your-jwt-secret-key"
+        jwt_algorithm = config.security.jwt_algorithm or "HS256"
+        
+        # Decode and validate token
+        payload = jwt.decode(token, jwt_secret, algorithms=[jwt_algorithm])
+        
+        user_id = payload.get("sub")
+        email = payload.get("email") 
+        name = payload.get("name")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token: missing user ID")
+        
+        # Verify user is authorized (check against allowed domains if configured)
+        if config.security.allowed_email_domains:
+            email_domain = email.split("@")[1] if email and "@" in email else ""
+            allowed_domains = config.security.allowed_email_domains.split(",")
+            
+            if email_domain not in allowed_domains:
+                raise HTTPException(status_code=403, detail="Unauthorized email domain")
+        
+        return {
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "authenticated_at": datetime.utcnow().isoformat()
+        }
+        
+    except InvalidTokenError as e:
+        logger.warning(f"Invalid JWT token: {e}")
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        logger.error(f"Authentication error: {e}")
+        raise HTTPException(status_code=401, detail="Authentication failed")
 
 
 # Health check endpoint
@@ -192,11 +231,32 @@ async def analyze_opportunity(
             "user_id": user["user_id"]
         }
         
-        # Run analysis in background
-        background_tasks.add_task(analyzer.execute, task_data)
+        # Create tracked task
+        task_id = await create_task(
+            task_type="opportunity_analysis",
+            task_data=task_data,
+            user_id=user["user_id"]
+        )
+        
+        # Define tracked task execution
+        async def tracked_analysis():
+            try:
+                await task_tracker.start_task(task_id)
+                await task_tracker.update_progress(task_id, 10, "Starting opportunity analysis...")
+                
+                result = await analyzer.execute(task_data)
+                
+                await task_tracker.complete_task(task_id, result)
+            except Exception as e:
+                await task_tracker.fail_task(task_id, str(e))
+                raise
+        
+        # Run tracked analysis in background
+        background_tasks.add_task(tracked_analysis)
         
         return {
             "status": "analysis_started",
+            "task_id": task_id,
             "opportunity_id": request.opportunity_id,
             "message": "Analysis started in background. Check status for updates."
         }
@@ -222,11 +282,32 @@ async def generate_response(
             "user_id": user["user_id"]
         }
         
-        # Run generation in background
-        background_tasks.add_task(generator.execute, task_data)
+        # Create tracked task
+        task_id = await create_task(
+            task_type="response_generation",
+            task_data=task_data,
+            user_id=user["user_id"]
+        )
+        
+        # Define tracked task execution
+        async def tracked_generation():
+            try:
+                await task_tracker.start_task(task_id)
+                await task_tracker.update_progress(task_id, 10, "Starting response generation...")
+                
+                result = await generator.execute(task_data)
+                
+                await task_tracker.complete_task(task_id, result)
+            except Exception as e:
+                await task_tracker.fail_task(task_id, str(e))
+                raise
+        
+        # Run tracked generation in background
+        background_tasks.add_task(tracked_generation)
         
         return {
             "status": "generation_started",
+            "task_id": task_id,
             "opportunity_id": request.opportunity_id,
             "template_type": request.template_type,
             "message": "Response generation started. Check status for updates."
@@ -255,11 +336,32 @@ async def send_email(
             "user_id": user["user_id"]
         }
         
+        # Create tracked task
+        task_id = await create_task(
+            task_type="email_sending",
+            task_data=task_data,
+            user_id=user["user_id"]
+        )
+        
+        # Define tracked task execution
+        async def tracked_email_send():
+            try:
+                await task_tracker.start_task(task_id)
+                await task_tracker.update_progress(task_id, 20, "Preparing email...")
+                
+                result = await email_manager.execute(task_data)
+                
+                await task_tracker.complete_task(task_id, result)
+            except Exception as e:
+                await task_tracker.fail_task(task_id, str(e))
+                raise
+        
         # Send email in background
-        background_tasks.add_task(email_manager.execute, task_data)
+        background_tasks.add_task(tracked_email_send)
         
         return {
             "status": "email_queued",
+            "task_id": task_id,
             "to_email": request.to_email,
             "template_type": request.template_type,
             "message": "Email queued for sending"
@@ -283,11 +385,32 @@ async def discover_opportunities(
             "user_id": user["user_id"]
         }
         
+        # Create tracked task
+        task_id = await create_task(
+            task_type="opportunity_discovery",
+            task_data=task_data,
+            user_id=user["user_id"]
+        )
+        
+        # Define tracked task execution
+        async def tracked_discovery():
+            try:
+                await task_tracker.start_task(task_id)
+                await task_tracker.update_progress(task_id, 10, "Starting opportunity discovery...")
+                
+                result = await finder.execute(task_data)
+                
+                await task_tracker.complete_task(task_id, result)
+            except Exception as e:
+                await task_tracker.fail_task(task_id, str(e))
+                raise
+        
         # Run discovery in background
-        background_tasks.add_task(finder.execute, task_data)
+        background_tasks.add_task(tracked_discovery)
         
         return {
             "status": "discovery_started",
+            "task_id": task_id,
             "message": "Opportunity discovery started in background"
         }
     except Exception as e:
@@ -302,11 +425,37 @@ async def process_sam_csv_endpoint(
 ):
     """Process SAM.gov CSV file directly"""
     try:
+        task_data = {
+            "action": "process_sam_csv",
+            "user_id": user["user_id"]
+        }
+        
+        # Create tracked task
+        task_id = await create_task(
+            task_type="csv_processing",
+            task_data=task_data,
+            user_id=user["user_id"]
+        )
+        
+        # Define tracked task execution
+        async def tracked_csv_processing():
+            try:
+                await task_tracker.start_task(task_id)
+                await task_tracker.update_progress(task_id, 10, "Starting CSV download...")
+                
+                result = await process_sam_csv()
+                
+                await task_tracker.complete_task(task_id, result)
+            except Exception as e:
+                await task_tracker.fail_task(task_id, str(e))
+                raise
+        
         # Run CSV processing in background
-        background_tasks.add_task(process_sam_csv)
+        background_tasks.add_task(tracked_csv_processing)
         
         return {
             "status": "csv_processing_started",
+            "task_id": task_id,
             "message": "SAM.gov CSV processing started in background"
         }
     except Exception as e:
@@ -340,19 +489,47 @@ async def get_dashboard_stats(user: dict = Depends(get_current_user)):
 
 
 @app.get("/api/status/{task_id}")
-async def get_task_status(task_id: str, user: dict = Depends(get_current_user)):
+async def get_task_status_endpoint(task_id: str, user: dict = Depends(get_current_user)):
     """Get status of a background task"""
     try:
-        # In production, implement proper task tracking
-        # For now, return mock status
-        return {
-            "task_id": task_id,
-            "status": "completed",
-            "progress": 100,
-            "result": {"message": "Task completed successfully"}
-        }
+        task_status = await get_task_status(task_id)
+        
+        if not task_status:
+            raise HTTPException(status_code=404, detail="Task not found")
+        
+        # Verify user has access to this task
+        if task_status["user_id"] != user["user_id"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        return task_status
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Task status error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/tasks")
+async def get_user_tasks(
+    status: Optional[str] = None, 
+    limit: int = 50,
+    user: dict = Depends(get_current_user)
+):
+    """Get tasks for the current user"""
+    try:
+        tasks = await task_tracker.get_user_tasks(
+            user_id=user["user_id"],
+            status_filter=status,
+            limit=limit
+        )
+        
+        return {
+            "tasks": tasks,
+            "total": len(tasks),
+            "user_id": user["user_id"]
+        }
+    except Exception as e:
+        logger.error(f"Get user tasks error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
