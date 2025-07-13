@@ -1,246 +1,303 @@
-# Makefile for Sources Sought AI system
-.PHONY: help install dev test lint format clean deploy docs
+# Sources Sought AI - Makefile
+# Convenient commands for development, testing, and deployment
+
+.PHONY: help install test smoke-test lint format clean build deploy
+
+# Variables
+PYTHON := python3
+PIP := pip3
+PROJECT_ROOT := $(shell pwd)
+SMOKE_TEST_DIR := tests/smoke
+WEB_DIR := web
+SCRIPTS_DIR := scripts
 
 # Default target
 help:
-	@echo "Sources Sought AI - Available Commands:"
+	@echo "Sources Sought AI - Available Commands"
+	@echo "======================================"
 	@echo ""
 	@echo "Development:"
-	@echo "  install     - Install all dependencies"
-	@echo "  dev         - Start development environment"
-	@echo "  dev-api     - Start API server only"
-	@echo "  dev-web     - Start web application only"
-	@echo "  setup       - Setup local development environment"
+	@echo "  install          Install all dependencies"
+	@echo "  install-dev      Install development dependencies"
+	@echo "  format          Format code with black and isort"
+	@echo "  lint            Run linting checks"
+	@echo "  clean           Clean build artifacts"
 	@echo ""
 	@echo "Testing:"
-	@echo "  test        - Run all tests"
-	@echo "  test-unit   - Run unit tests only"
-	@echo "  test-int    - Run integration tests only"
-	@echo "  test-e2e    - Run end-to-end tests only"
-	@echo "  coverage    - Run tests with coverage report"
+	@echo "  test            Run all tests"
+	@echo "  smoke-test      Run smoke tests"
+	@echo "  smoke-test-mcp  Run MCP server smoke tests"
+	@echo "  smoke-test-api  Run API smoke tests"
+	@echo "  smoke-test-web  Run web app smoke tests"
+	@echo "  smoke-test-infra Run infrastructure smoke tests"
+	@echo "  smoke-test-quick Quick health check"
 	@echo ""
-	@echo "Code Quality:"
-	@echo "  lint        - Run code linting"
-	@echo "  format      - Format code with black and prettier"
-	@echo "  typecheck   - Run type checking"
-	@echo ""
-	@echo "Docker:"
-	@echo "  docker-up   - Start Docker services"
-	@echo "  docker-down - Stop Docker services"
-	@echo "  docker-logs - View Docker logs"
-	@echo ""
-	@echo "Database:"
-	@echo "  db-create   - Create DynamoDB tables"
-	@echo "  db-reset    - Reset database (development only)"
-	@echo ""
-	@echo "AWS Setup:"
-	@echo "  aws-setup   - Complete AWS setup (Secrets Manager + AppConfig + Infrastructure)"
-	@echo "  aws-secrets - Setup AWS Secrets Manager only"
-	@echo "  aws-config  - Setup AWS AppConfig only"
-	@echo "  aws-verify  - Verify AWS setup"
-	@echo ""
-	@echo "CSV Processing:"
-	@echo "  csv-sample  - Download and show CSV sample"
-	@echo "  csv-test    - Test CSV parsing with sample data"
-	@echo "  csv-process - Process SAM.gov CSV file"
-	@echo "  csv-match   - Process CSV and run opportunity matching"
-	@echo "  csv-full    - Full CSV processing workflow"
+	@echo "Services:"
+	@echo "  start-mcp       Start MCP servers"
+	@echo "  stop-mcp        Stop MCP servers"
+	@echo "  start-api       Start API server"
+	@echo "  start-web       Start web application"
+	@echo "  start-all       Start all services"
+	@echo "  stop-all        Stop all services"
 	@echo ""
 	@echo "Deployment:"
-	@echo "  deploy-dev  - Deploy to development environment"
-	@echo "  deploy-prod - Deploy to production environment"
-	@echo "  package     - Package application for deployment"
+	@echo "  build           Build all components"
+	@echo "  deploy-dev      Deploy to development"
+	@echo "  deploy-prod     Deploy to production"
 	@echo ""
-	@echo "Documentation:"
-	@echo "  docs        - Generate documentation"
-	@echo "  docs-serve  - Serve documentation locally"
-	@echo ""
-	@echo "Maintenance:"
-	@echo "  clean       - Clean temporary files"
-	@echo "  deps-check  - Check dependency security"
-	@echo "  deps-update - Update dependencies"
 
-# Installation
+# Installation targets
 install:
 	@echo "Installing Python dependencies..."
-	pip install -r requirements.txt
+	$(PIP) install -r requirements.txt
+	$(PIP) install -r $(SMOKE_TEST_DIR)/requirements.txt
 	@echo "Installing web dependencies..."
-	cd web && npm install
-	@echo "Installation complete!"
+	cd $(WEB_DIR) && npm install
+	@echo "✅ All dependencies installed"
 
-# Development
-setup:
-	@echo "Setting up development environment..."
-	python scripts/development.py setup
-	@echo "Setup complete!"
+install-dev: install
+	@echo "Installing development dependencies..."
+	$(PIP) install black isort mypy pytest pytest-asyncio pytest-timeout
+	cd $(WEB_DIR) && npm install --save-dev
+	@echo "✅ Development dependencies installed"
 
-dev:
-	@echo "Starting full development environment..."
-	python scripts/development.py dev
-
-dev-api:
-	@echo "Starting API server..."
-	python scripts/development.py api
-
-dev-web:
-	@echo "Starting web application..."
-	python scripts/development.py web
-
-# Testing
-test:
-	@echo "Running all tests..."
-	python scripts/run_tests.py all
-
-test-unit:
-	@echo "Running unit tests..."
-	python scripts/run_tests.py unit
-
-test-int:
-	@echo "Running integration tests..."
-	python scripts/run_tests.py integration
-
-test-e2e:
-	@echo "Running end-to-end tests..."
-	python scripts/run_tests.py e2e
-
-coverage:
-	@echo "Running tests with coverage..."
-	python scripts/run_tests.py coverage
-
-# Code Quality
-lint:
-	@echo "Running code linting..."
-	python scripts/run_tests.py lint
-	@echo "Linting Python code..."
-	flake8 src/ tests/ --max-line-length=100
-	@echo "Linting web code..."
-	cd web && npm run lint
-
+# Code quality targets
 format:
 	@echo "Formatting Python code..."
-	black src/ tests/ scripts/ --line-length=100
+	black src/ tests/ scripts/
 	isort src/ tests/ scripts/
 	@echo "Formatting web code..."
-	cd web && npm run format
+	cd $(WEB_DIR) && npm run format
+	@echo "✅ Code formatted"
 
-typecheck:
-	@echo "Running type checking..."
-	mypy src/ --ignore-missing-imports
+lint:
+	@echo "Linting Python code..."
+	black --check src/ tests/ scripts/
+	isort --check-only src/ tests/ scripts/
+	mypy src/
+	@echo "Linting web code..."
+	cd $(WEB_DIR) && npm run lint
+	@echo "✅ Linting completed"
 
-# Docker
+# Testing targets
+test:
+	@echo "Running all tests..."
+	$(PYTHON) -m pytest tests/unit/ tests/integration/ -v
+	@echo "✅ All tests completed"
+
+smoke-test:
+	@echo "Running comprehensive smoke tests..."
+	./$(SCRIPTS_DIR)/smoke_test.sh
+	@echo "✅ Smoke tests completed"
+
+smoke-test-mcp:
+	@echo "Running MCP server smoke tests..."
+	./$(SCRIPTS_DIR)/smoke_test.sh mcp-servers
+	@echo "✅ MCP smoke tests completed"
+
+smoke-test-api:
+	@echo "Running API smoke tests..."
+	./$(SCRIPTS_DIR)/smoke_test.sh api
+	@echo "✅ API smoke tests completed"
+
+smoke-test-web:
+	@echo "Running web app smoke tests..."
+	./$(SCRIPTS_DIR)/smoke_test.sh web-app
+	@echo "✅ Web app smoke tests completed"
+
+smoke-test-infra:
+	@echo "Running infrastructure smoke tests..."
+	./$(SCRIPTS_DIR)/smoke_test.sh infrastructure
+	@echo "✅ Infrastructure smoke tests completed"
+
+smoke-test-quick:
+	@echo "Running quick health check..."
+	./$(SCRIPTS_DIR)/smoke_test.sh --quick
+	@echo "✅ Quick health check completed"
+
+# Service management targets
+start-mcp:
+	@echo "Starting MCP servers..."
+	docker-compose up -d
+	@echo "✅ MCP servers started"
+
+stop-mcp:
+	@echo "Stopping MCP servers..."
+	docker-compose down
+	@echo "✅ MCP servers stopped"
+
+start-api:
+	@echo "Starting API server..."
+	cd src && $(PYTHON) -m api.server &
+	@echo "✅ API server started"
+
+start-web:
+	@echo "Starting web application..."
+	cd $(WEB_DIR) && npm run dev &
+	@echo "✅ Web application started"
+
+start-all: start-mcp start-api start-web
+	@echo "✅ All services started"
+
+stop-all: stop-mcp
+	@echo "Stopping API and web services..."
+	pkill -f "python.*api.server" || true
+	pkill -f "next.*dev" || true
+	@echo "✅ All services stopped"
+
+# Build targets
+build:
+	@echo "Building web application..."
+	cd $(WEB_DIR) && npm run build
+	@echo "Building Docker images..."
+	docker-compose build
+	@echo "✅ Build completed"
+
+# Deployment targets
+deploy-dev:
+	@echo "Deploying to development environment..."
+	export ENVIRONMENT=development && \
+	aws cloudformation deploy \
+		--template-file infrastructure/cloudformation-template.yaml \
+		--stack-name sources-sought-dev \
+		--parameter-overrides Environment=development \
+		--capabilities CAPABILITY_IAM
+	@echo "✅ Development deployment completed"
+
+deploy-prod:
+	@echo "Deploying to production environment..."
+	export ENVIRONMENT=production && \
+	aws cloudformation deploy \
+		--template-file infrastructure/cloudformation-template.yaml \
+		--stack-name sources-sought-prod \
+		--parameter-overrides Environment=production \
+		--capabilities CAPABILITY_IAM
+	@echo "✅ Production deployment completed"
+
+# Cleanup targets
+clean:
+	@echo "Cleaning build artifacts..."
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
+	cd $(WEB_DIR) && rm -rf .next node_modules/.cache
+	rm -rf $(SMOKE_TEST_DIR)/results/*.json
+	@echo "✅ Cleanup completed"
+
+# Development convenience targets
+dev-setup: install-dev start-all
+	@echo "✅ Development environment ready"
+
+ci-test: lint test smoke-test
+	@echo "✅ CI testing completed"
+
+# Docker convenience targets
+docker-build:
+	@echo "Building Docker images..."
+	docker-compose build
+	@echo "✅ Docker images built"
+
 docker-up:
 	@echo "Starting Docker services..."
 	docker-compose up -d
+	@echo "✅ Docker services started"
 
 docker-down:
 	@echo "Stopping Docker services..."
 	docker-compose down
+	@echo "✅ Docker services stopped"
 
 docker-logs:
-	@echo "Viewing Docker logs..."
+	@echo "Showing Docker logs..."
 	docker-compose logs -f
 
-# Database
-db-create:
-	@echo "Creating DynamoDB tables..."
-	python scripts/development.py create-tables
+# Utility targets
+check-env:
+	@echo "Checking environment configuration..."
+	@echo "AWS Region: $${AWS_REGION:-'Not set'}"
+	@echo "Environment: $${ENVIRONMENT:-'Not set'}"
+	@echo "Use LocalStack: $${USE_LOCALSTACK:-'Not set'}"
+	@echo "API Base URL: $${API_BASE_URL:-'Not set'}"
+	@echo "Web Base URL: $${WEB_BASE_URL:-'Not set'}"
 
-db-reset:
-	@echo "Resetting database (development only)..."
-	docker-compose down
-	docker-compose up -d dynamodb-local
-	sleep 5
-	python scripts/development.py create-tables
+logs-api:
+	@echo "Showing API server logs..."
+	tail -f src/logs/api.log
 
-# CSV Processing
-csv-sample:
-	@echo "Downloading CSV sample..."
-	python scripts/process_csv.py sample
+logs-web:
+	@echo "Showing web application logs..."
+	cd $(WEB_DIR) && npm run logs
 
-csv-test:
-	@echo "Testing CSV parsing..."
-	python scripts/process_csv.py test
+# AWS utility targets
+aws-validate:
+	@echo "Validating CloudFormation template..."
+	aws cloudformation validate-template \
+		--template-body file://infrastructure/cloudformation-template.yaml
 
-csv-process:
-	@echo "Processing SAM.gov CSV file..."
-	python scripts/process_csv.py process
+aws-estimate-cost:
+	@echo "Estimating AWS costs..."
+	aws cloudformation estimate-template-cost \
+		--template-body file://infrastructure/cloudformation-template.yaml \
+		--parameters ParameterKey=Environment,ParameterValue=development
 
-csv-match:
-	@echo "Processing CSV and running opportunity matching..."
-	python scripts/process_csv.py match
+# Monitoring targets
+monitor-health:
+	@echo "Monitoring system health..."
+	watch -n 30 './$(SCRIPTS_DIR)/smoke_test.sh --quick'
 
-csv-full:
-	@echo "Full CSV processing with matching..."
-	python scripts/process_csv.py full
+schedule-tests:
+	@echo "Setting up scheduled smoke tests..."
+	$(PYTHON) $(SCRIPTS_DIR)/schedule_smoke_tests.py --notify-only
 
-# AWS Setup
-aws-setup:
-	@echo "Setting up complete AWS infrastructure..."
-	python scripts/setup_aws_complete.py
+# Database utility targets
+db-setup:
+	@echo "Setting up local DynamoDB tables..."
+	$(PYTHON) scripts/setup_local_db.py
 
-aws-secrets:
-	@echo "Setting up AWS Secrets Manager..."
-	@echo "Usage: python scripts/setup_aws_secrets.py --aws-access-key YOUR_ACCESS_KEY --aws-secret-key YOUR_SECRET_KEY --anthropic-key YOUR_ANTHROPIC_KEY"
+db-migrate:
+	@echo "Running database migrations..."
+	$(PYTHON) scripts/migrate_db.py
 
-aws-config:
-	@echo "Setting up AWS AppConfig..."
-	python scripts/setup_aws_appconfig.py
+# Security targets
+security-scan:
+	@echo "Running security scans..."
+	safety check
+	bandit -r src/
 
-aws-verify:
-	@echo "Verifying AWS setup..."
-	python scripts/setup_aws_complete.py --verify-only
-
-# Deployment
-deploy-dev:
-	@echo "Deploying to development environment..."
-	python scripts/deploy.py --environment development
-
-deploy-prod:
-	@echo "Deploying to production environment..."
-	python scripts/deploy.py --environment production
-
-package:
-	@echo "Packaging application..."
-	mkdir -p dist
-	zip -r dist/sources-sought-ai.zip src/ infrastructure/ scripts/ requirements.txt
-	cd web && npm run build && tar -czf ../dist/web-build.tar.gz build/
-	@echo "Package created in dist/"
-
-# Documentation
-docs:
-	@echo "Generating documentation..."
-	python scripts/development.py docs
+# Documentation targets
+docs-build:
+	@echo "Building documentation..."
+	cd docs && make html
 
 docs-serve:
 	@echo "Serving documentation..."
-	cd docs && python -m http.server 8001
+	cd docs/_build/html && $(PYTHON) -m http.server 8080
 
-# Maintenance
-clean:
-	@echo "Cleaning temporary files..."
-	find . -type f -name "*.pyc" -delete
-	find . -type d -name "__pycache__" -delete
-	rm -rf .pytest_cache/
-	rm -rf htmlcov/
-	rm -rf test_reports/
-	rm -rf dist/
-	rm -rf logs/*.log
-	cd web && npm run clean
+# Backup targets
+backup-config:
+	@echo "Backing up configuration..."
+	mkdir -p backups/config
+	cp -r infrastructure/ backups/config/
+	cp docker-compose.yml backups/config/
+	@echo "✅ Configuration backed up"
 
-deps-check:
-	@echo "Checking dependency security..."
-	pip-audit
-	cd web && npm audit
+# Performance testing
+perf-test:
+	@echo "Running performance tests..."
+	$(PYTHON) tests/performance/run_load_tests.py
 
-deps-update:
-	@echo "Updating dependencies..."
-	pip-review --local --auto
-	cd web && npm update
+# Version management
+version:
+	@echo "Current version: $$(git describe --tags --always)"
 
-# Development shortcuts
-.PHONY: up down logs api web
-up: docker-up
-down: docker-down 
-logs: docker-logs
-api: dev-api
-web: dev-web
+bump-version:
+	@echo "Bumping version..."
+	$(PYTHON) scripts/bump_version.py
+
+# Release targets
+release-dev: lint test build deploy-dev
+	@echo "✅ Development release completed"
+
+release-prod: lint test build deploy-prod
+	@echo "✅ Production release completed"

@@ -198,8 +198,8 @@ def sample_response():
 
 
 @pytest.fixture
-def mock_openai_response():
-    """Mock OpenAI API response for testing."""
+def mock_anthropic_response():
+    """Mock Anthropic API response for testing."""
     return {
         "id": "chatcmpl-test123",
         "object": "chat.completion",

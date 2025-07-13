@@ -11,7 +11,7 @@ from typing import Dict, Any, List, Optional, Tuple
 import uuid
 
 import boto3
-import openai
+import anthropic
 from botocore.exceptions import ClientError
 
 from ..core.agent_base import BaseAgent, AgentContext, AgentResult
@@ -377,8 +377,10 @@ class ContentGenerator:
         self.logger = get_logger("content_generator")
         
         # Initialize AI client
-        if config.ai.openai_api_key:
-            openai.api_key = config.ai.openai_api_key
+        if config.ai.anthropic_api_key:
+            self.anthropic_client = anthropic.Anthropic(api_key=config.ai.anthropic_api_key)
+        else:
+            self.anthropic_client = None
     
     async def generate_response_content(self, opportunity: Opportunity,
                                       template: ResponseTemplate,
@@ -518,17 +520,19 @@ class ContentGenerator:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            if not self.anthropic_client:
+                raise ValueError("Anthropic client not initialized")
+                
+            response = await self.anthropic_client.messages.create(
                 model=config.ai.generation_model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
+                max_tokens=1500,
                 temperature=0.3,
-                max_tokens=1500
+                messages=[
+                    {"role": "user", "content": f"{system_prompt}\n\n{user_prompt}"}
+                ]
             )
             
-            return response.choices[0].message.content
+            return response.content[0].text
             
         except Exception as e:
             self.logger.error(f"Failed to generate past performance: {e}")
@@ -560,17 +564,19 @@ class ContentGenerator:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            if not self.anthropic_client:
+                raise ValueError("Anthropic client not initialized")
+                
+            response = await self.anthropic_client.messages.create(
                 model=config.ai.generation_model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
+                max_tokens=800,
                 temperature=0.3,
-                max_tokens=800
+                messages=[
+                    {"role": "user", "content": f"{system_prompt}\n\n{user_prompt}"}
+                ]
             )
             
-            return response.choices[0].message.content
+            return response.content[0].text
             
         except Exception as e:
             self.logger.error(f"Failed to generate technical capabilities: {e}")
@@ -620,17 +626,19 @@ class ContentGenerator:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            if not self.anthropic_client:
+                raise ValueError("Anthropic client not initialized")
+                
+            response = await self.anthropic_client.messages.create(
                 model=config.ai.generation_model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
+                max_tokens=600,
                 temperature=0.4,
-                max_tokens=600
+                messages=[
+                    {"role": "user", "content": f"{system_prompt}\n\n{user_prompt}"}
+                ]
             )
             
-            return response.choices[0].message.content
+            return response.content[0].text
             
         except Exception as e:
             self.logger.error(f"Failed to generate solution approach: {e}")
@@ -681,17 +689,19 @@ class ContentGenerator:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            if not self.anthropic_client:
+                raise ValueError("Anthropic client not initialized")
+                
+            response = await self.anthropic_client.messages.create(
                 model=config.ai.generation_model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
+                max_tokens=3000,
                 temperature=0.2,
-                max_tokens=3000
+                messages=[
+                    {"role": "user", "content": f"{system_prompt}\n\n{user_prompt}"}
+                ]
             )
             
-            optimized = response.choices[0].message.content
+            optimized = response.content[0].text
             
             # Ensure we didn't lose critical structure
             if len(optimized) < len(content) * 0.8:
@@ -810,17 +820,19 @@ class ComplianceChecker:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            if not self.anthropic_client:
+                raise ValueError("Anthropic client not initialized")
+                
+            response = await self.anthropic_client.messages.create(
                 model=config.ai.analysis_model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
+                max_tokens=800,
                 temperature=0.1,
-                max_tokens=800
+                messages=[
+                    {"role": "user", "content": f"{system_prompt}\n\n{user_prompt}"}
+                ]
             )
             
-            quality_data = json.loads(response.choices[0].message.content)
+            quality_data = json.loads(response.content[0].text)
             return quality_data
             
         except Exception as e:

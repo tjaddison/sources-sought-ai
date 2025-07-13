@@ -11,7 +11,7 @@ from typing import Dict, Any, List, Optional, Tuple
 import uuid
 
 import boto3
-import openai
+import anthropic
 from botocore.exceptions import ClientError
 
 from ..core.agent_base import BaseAgent, AgentContext, AgentResult
@@ -28,9 +28,11 @@ class RequirementExtractor:
     def __init__(self):
         self.logger = get_logger("requirement_extractor")
         
-        # Initialize AI client
-        if config.ai.openai_api_key:
-            openai.api_key = config.ai.openai_api_key
+        # Initialize Anthropic client
+        if config.ai.anthropic_api_key:
+            self.anthropic_client = anthropic.Anthropic(api_key=config.ai.anthropic_api_key)
+        else:
+            self.anthropic_client = None
         
         # Common requirement patterns
         self.requirement_patterns = {
@@ -126,17 +128,19 @@ class RequirementExtractor:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            if not self.anthropic_client:
+                raise ValueError("Anthropic client not initialized")
+                
+            response = await self.anthropic_client.messages.create(
                 model=config.ai.analysis_model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
+                max_tokens=2000,
                 temperature=0.1,
-                max_tokens=2000
+                messages=[
+                    {"role": "user", "content": f"{system_prompt}\n\n{user_prompt}"}
+                ]
             )
             
-            content = response.choices[0].message.content
+            content = response.content[0].text
             
             # Parse JSON response
             requirements_data = json.loads(content)

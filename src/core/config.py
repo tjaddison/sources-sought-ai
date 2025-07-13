@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .secrets_manager import (
-    get_aws_credentials, get_anthropic_api_key, get_openai_api_key,
+    get_aws_credentials, get_anthropic_api_key,
     get_slack_credentials, get_email_credentials, get_oauth_secrets,
     get_database_secrets
 )
@@ -59,7 +59,7 @@ class AIConfig:
     """AI service configuration"""
     # API keys (loaded from Secrets Manager)
     anthropic_api_key: Optional[str] = None
-    openai_api_key: Optional[str] = None
+    # openai_api_key: Optional[str] = None  # Deprecated - using Anthropic Claude
     
     # Anthropic models (loaded from AppConfig)
     default_model: str = "claude-3-5-sonnet-20241022"
@@ -386,7 +386,7 @@ class Config:
         
         # AI Configuration
         self.ai.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-        self.ai.openai_api_key = os.getenv("OPENAI_API_KEY")
+        # self.ai.openai_api_key = os.getenv("OPENAI_API_KEY")  # Deprecated
         
         # Security Configuration
         self.security.slack_bot_token = os.getenv("SLACK_BOT_TOKEN")

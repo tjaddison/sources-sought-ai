@@ -319,7 +319,7 @@ def main():
                        help="Skip infrastructure deployment")
     parser.add_argument("--skip-functions", action="store_true", 
                        help="Skip function deployment")
-    parser.add_argument("--openai-key", help="OpenAI API key")
+    parser.add_argument("--openai-key", help="OpenAI API key (deprecated)")
     parser.add_argument("--slack-token", help="Slack bot token")
     parser.add_argument("--sam-gov-key", help="SAM.gov API key")
     
@@ -327,6 +327,7 @@ def main():
     
     # Prepare parameters
     parameters = {}
+    # OpenAI key support deprecated but maintained for backwards compatibility
     if args.openai_key:
         parameters["OpenAIAPIKey"] = args.openai_key
     if args.slack_token:

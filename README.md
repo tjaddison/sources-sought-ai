@@ -1,21 +1,22 @@
 # Sources Sought AI - Multi-Agent Government Contracting Solution
 
-A comprehensive, production-ready multi-agent system for automatically discovering, analyzing, and responding to government Sources Sought notices according to strategic contracting principles.
+A comprehensive, production-ready multi-agent system for automatically discovering, analyzing, and responding to government Sources Sought notices according to strategic contracting principles. Built on AWS serverless architecture with Anthropic Claude AI integration.
 
-## Overview
+## 🎯 Overview
 
 Sources Sought notices are requests for information (RFI) posted by government agencies during early procurement stages to identify potential vendors, conduct market research, and shape requirements. This system provides automated intelligence gathering, response generation, and relationship management to maximize contracting success.
 
 ### Key Benefits
 
-- **Early Positioning**: Get on government radar 12-18 months before contract award
-- **Requirements Shaping**: Influence solicitations to favor your capabilities  
-- **Competition Limiting**: Trigger small business set-asides through "Rule of Two"
-- **Intelligence Gathering**: Learn needs not in final solicitations
-- **Relationship Building**: Start crucial agency relationships early
-- **Process Automation**: 75% reduction in response time with 100% compliance
+- **🎯 Early Positioning**: Get on government radar 12-18 months before contract award
+- **📝 Requirements Shaping**: Influence solicitations to favor your capabilities  
+- **🏆 Competition Limiting**: Trigger small business set-asides through "Rule of Two"
+- **🔍 Intelligence Gathering**: Learn needs not in final solicitations
+- **🤝 Relationship Building**: Start crucial agency relationships early
+- **⚡ Process Automation**: 75% reduction in response time with 100% compliance
+- **🎯 Strategic Positioning**: AI-powered response optimization for maximum impact
 
-## System Architecture
+## 🏗️ System Architecture
 
 The system consists of specialized AI agents orchestrated through AWS services:
 
@@ -43,12 +44,14 @@ graph TB
         M[SQS Queues]
         N[EventBridge]
         O[Vector Database]
+        P[S3 Storage]
     end
     
     subgraph "Interfaces"
-        P[NextJS Web App]
-        Q[Slack Integration]
-        R[Email Interface]
+        Q[NextJS Web App]
+        R[Slack Integration]
+        S[Email Interface]
+        T[MCP Servers]
     end
     
     A --> E
@@ -67,11 +70,12 @@ graph TB
     L --> M
     M --> N
     
-    P --> Q
     Q --> R
+    R --> S
+    T --> Q
 ```
 
-## Agent Specifications
+## 🤖 Agent Specifications
 
 ### OpportunityFinder Agent (`ss-opportunity-finder`)
 - **Purpose**: Continuous monitoring of SAM.gov for relevant Sources Sought notices
@@ -80,7 +84,8 @@ graph TB
   - Keyword matching and relevance scoring
   - Deadline tracking and alert generation
   - Market intelligence gathering
-- **Triggers**: EventBridge daily schedule
+  - Automated opportunity classification
+- **Triggers**: EventBridge daily schedule (8 AM EST)
 - **Outputs**: Filtered opportunities to Analyzer Agent
 
 ### Analyzer Agent (`ss-analyzer`)
@@ -90,6 +95,7 @@ graph TB
   - Gap analysis and risk assessment
   - Competition analysis and positioning
   - Strategic recommendations generation
+  - Win probability scoring
 - **Triggers**: New opportunities from OpportunityFinder
 - **Outputs**: Analysis report to ResponseGenerator
 
@@ -100,6 +106,7 @@ graph TB
   - Past performance matching
   - Compliance verification
   - Strategic positioning and influence tactics
+  - Quality assurance and optimization
 - **Triggers**: Approved analysis from Analyzer Agent
 - **Outputs**: Draft response to HumanInTheLoop
 
@@ -110,6 +117,7 @@ graph TB
   - Communication history tracking
   - Engagement scoring and recommendations
   - Follow-up scheduling and automation
+  - Relationship mapping and insights
 - **Triggers**: Response submissions and interactions
 - **Outputs**: Relationship insights and action items
 
@@ -120,8 +128,16 @@ graph TB
   - Inbox monitoring and response assessment
   - Confirmation tracking and follow-up
   - Human escalation for complex decisions
+  - **Dedicated Email Addresses**: Each agent can have its own email for specialized communication
 - **Triggers**: Various workflow stages
 - **Outputs**: Sent emails and status updates
+
+**Email Address Strategy**: 
+- Primary system email: `sources-sought@yourcompany.com`
+- Agent-specific emails (optional):
+  - `opportunities@yourcompany.com` (OpportunityFinder)
+  - `responses@yourcompany.com` (ResponseGenerator)
+  - `relationships@yourcompany.com` (RelationshipManager)
 
 ### HumanInTheLoop Agent (`ss-human-loop`)
 - **Purpose**: Slack-based human interaction and approval workflows
@@ -130,56 +146,86 @@ graph TB
   - Document review and editing
   - Strategic decision support
   - Error escalation and resolution
+  - Real-time collaboration
 - **Triggers**: Approval checkpoints and exceptions
 - **Outputs**: Approved actions and feedback
 
-## Technical Stack
+## 🛠️ Technical Stack
 
 ### Backend Infrastructure
 - **Language**: Python 3.11+
 - **Compute**: AWS Lambda (serverless)
-- **Database**: AWS DynamoDB (NoSQL)
+- **Database**: AWS DynamoDB (NoSQL with event sourcing)
 - **Messaging**: AWS SQS (agent communication)
 - **Scheduling**: AWS EventBridge (time-based triggers)
-- **AI/ML**: AWS Bedrock (when cost-effective), OpenAI APIs
+- **AI/ML**: Anthropic Claude (GPT-4 class performance)
 - **Search**: BM25 with preprocessed indices
 - **Event Sourcing**: Immutable audit logs in DynamoDB
+- **Caching**: Redis for session management
 
 ### Frontend Application
 - **Framework**: Next.js 14+ with TypeScript
 - **Authentication**: Google OAuth + additional providers
-- **UI/UX**: Best-in-class design patterns
-- **State Management**: Zustand or Redux Toolkit
-- **Styling**: Tailwind CSS with shadcn/ui components
+- **UI/UX**: Best-in-class design patterns with Tailwind CSS
+- **State Management**: Zustand for client state
+- **Styling**: Tailwind CSS with Headless UI components
+- **API**: SWR for data fetching
+
+### AI & Machine Learning
+- **Primary AI**: Anthropic Claude (claude-3-5-sonnet-20241022)
+- **Vector Database**: Weaviate for semantic search
+- **Search Engine**: BM25 for document retrieval
+- **Model Context Protocol**: 10 specialized MCP servers
+- **Prompt Management**: Centralized prompt catalog
 
 ### Integrations
 - **Slack**: Real-time notifications and approvals
 - **Email**: Multi-provider support (Gmail, Outlook, etc.)
 - **SAM.gov**: Official API integration
 - **Model Context Protocol**: Tool and resource management
+- **AWS Services**: Native integration across all services
 
 ### DevOps & Monitoring
-- **IaC**: AWS CDK/CloudFormation with proper tagging
+- **IaC**: AWS CloudFormation with proper tagging
 - **Monitoring**: CloudWatch + 24/7 error alerting
 - **Security**: IAM roles, encryption, compliance
 - **CI/CD**: GitHub Actions with automated testing
+- **Smoke Testing**: Comprehensive health monitoring
 
-## Resource Naming Convention
+## 📊 MCP Server Architecture
 
-All AWS resources follow the pattern: `ss-{environment}-{service}-{component}`
+The system uses 10 specialized Model Context Protocol servers:
+
+| Server | Port | Purpose | Key Features |
+|--------|------|---------|--------------|
+| **Email MCP** | 8001 | Email operations | SMTP/IMAP, multi-template support |
+| **SAM MCP** | 8002 | SAM.gov integration | API calls, data parsing, caching |
+| **DocGen MCP** | 8003 | Document generation | Response templates, formatting |
+| **Search MCP** | 8004 | BM25 search engine | Index management, query optimization |
+| **Slack MCP** | 8005 | Human-in-the-loop | Interactive approvals, notifications |
+| **Database MCP** | 8006 | DynamoDB operations | CRUD, queries, event sourcing |
+| **AWS MCP** | 8007 | AWS service integration | Multi-service operations |
+| **CRM MCP** | 8008 | Contact management | Relationship tracking, scoring |
+| **Monitoring MCP** | 8009 | System monitoring | Health checks, metrics, alerts |
+| **Prompts MCP** | 8010 | AI prompt management | Template library, optimization |
+
+## 🏷️ Resource Naming Convention
+
+All AWS resources follow the pattern: `SourcesSought-{Component}-{Environment}`
 
 Examples:
-- `ss-prod-lambda-opportunity-finder`
-- `ss-dev-dynamodb-opportunities`
-- `ss-staging-sqs-analyzer-queue`
+- `SourcesSought-OpportunityFinderLambda-Production`
+- `SourcesSought-Opportunities-Development`
+- `SourcesSought-AnalyzerQueue-Staging`
 
-## Installation & Setup
+## 🚀 Installation & Setup
 
 ### Prerequisites
-- AWS CLI configured
+- AWS CLI configured with appropriate permissions
 - Node.js 18+
 - Python 3.11+
-- Docker (for local development)
+- Docker (for local MCP server development)
+- Make (for convenient commands)
 
 ### Quick Start
 ```bash
@@ -187,19 +233,21 @@ Examples:
 git clone <repository-url>
 cd sources-sought-ai
 
-# Install dependencies
-npm install
-pip install -r requirements.txt
+# Install all dependencies
+make install
 
 # Configure environment
 cp .env.example .env
 # Edit .env with your configurations
 
 # Deploy infrastructure
-npm run deploy:dev
+make deploy-dev
 
-# Start local development
-npm run dev
+# Start all services
+make start-all
+
+# Run smoke tests
+make smoke-test
 ```
 
 ### Environment Variables
@@ -208,233 +256,463 @@ npm run dev
 AWS_REGION=us-east-1
 AWS_ACCOUNT_ID=your-account-id
 
+# AI Configuration
+ANTHROPIC_API_KEY=your-anthropic-key
+
 # API Keys
-OPENAI_API_KEY=your-openai-key
 SAM_GOV_API_KEY=your-sam-api-key
 SLACK_BOT_TOKEN=your-slack-token
 
 # Database
-DYNAMODB_TABLE_PREFIX=ss-dev
+DYNAMODB_TABLE_PREFIX=SourcesSought
 
 # Authentication
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+NEXTAUTH_SECRET=your-nextauth-secret
+
+# Email Configuration (for agent email addresses)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=sources-sought@yourcompany.com
+SMTP_PASSWORD=your-app-password
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# LocalStack (for development)
+USE_LOCALSTACK=false
+LOCALSTACK_ENDPOINT=http://localhost:4566
 ```
 
-## Usage
+## 📧 Email Configuration for Agents
+
+### Recommended Email Setup
+
+**Option 1: Single Shared Inbox**
+- Use one email address: `sources-sought@yourcompany.com`
+- All agents share the same inbox
+- Use email filters and labels for organization
+
+**Option 2: Dedicated Agent Emails**
+- `opportunities@yourcompany.com` - OpportunityFinder communications
+- `responses@yourcompany.com` - ResponseGenerator submissions
+- `relationships@yourcompany.com` - RelationshipManager follow-ups
+- Main system: `sources-sought@yourcompany.com`
+
+**Email Provider Configuration:**
+```env
+# Gmail Configuration
+EMAIL_PROVIDER=gmail
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+IMAP_HOST=imap.gmail.com
+IMAP_PORT=993
+SMTP_USERNAME=sources-sought@yourcompany.com
+SMTP_PASSWORD=your-app-password  # Use app-specific password
+
+# Outlook Configuration
+EMAIL_PROVIDER=outlook
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+IMAP_HOST=outlook.office365.com
+IMAP_PORT=993
+```
+
+### Email Template Categories
+- **Submission Confirmations**: Response delivery receipts
+- **Follow-up Communications**: Relationship building
+- **Meeting Requests**: Strategic engagement
+- **Information Requests**: Clarification needs
+- **Thank You Notes**: Relationship maintenance
+
+## 🔄 Usage Workflow
 
 ### Initial Setup
-1. **Company Profile**: Configure your company capabilities, certifications, and past performance
-2. **Search Criteria**: Set NAICS codes, keywords, and geographic preferences
+1. **Company Profile**: Configure capabilities, certifications, past performance
+2. **Search Criteria**: Set NAICS codes, keywords, geographic preferences
 3. **Templates**: Customize response templates for different service types
 4. **Contacts**: Import government contact database
+5. **Email Setup**: Configure email addresses and authentication
 
-### Automated Workflow
-1. **Discovery**: OpportunityFinder monitors SAM.gov daily
-2. **Analysis**: Analyzer evaluates fit and strategic value
-3. **Review**: HumanInTheLoop presents recommendations via Slack
-4. **Response**: ResponseGenerator creates tailored responses
-5. **Submission**: EmailManager handles delivery and confirmation
-6. **Follow-up**: RelationshipManager tracks ongoing engagement
+### Automated Daily Workflow
+1. **08:00 EST**: OpportunityFinder scans SAM.gov for new notices
+2. **08:30 EST**: Analyzer evaluates fit and strategic value
+3. **09:00 EST**: HumanInTheLoop presents recommendations via Slack
+4. **User Action**: Review and approve responses
+5. **Automated**: ResponseGenerator creates tailored responses
+6. **Automated**: EmailManager handles delivery and confirmation
+7. **Ongoing**: RelationshipManager tracks engagement
 
 ### Manual Operations
 - Override automated decisions
 - Add custom analysis notes
 - Schedule strategic meetings
 - Export reports and analytics
+- Manage agent email addresses
 
-## API Documentation
+## 🔧 Development Commands
 
-### Agent Endpoints
-- `POST /api/agents/opportunity-finder/trigger` - Manual opportunity scan
-- `GET /api/agents/analyzer/status/{opportunity_id}` - Analysis status
-- `POST /api/agents/response-generator/generate` - Generate response
-- `GET /api/agents/relationship-manager/contacts` - Contact management
+The system includes a comprehensive Makefile for easy development:
 
-### Webhook Endpoints
-- `POST /webhooks/slack/events` - Slack event handling
-- `POST /webhooks/email/inbound` - Email processing
-- `POST /webhooks/sam-gov/updates` - SAM.gov notifications
-
-## Data Models
-
-### Core Entities
-- **Opportunity**: Sources Sought notice with metadata
-- **Company**: Business profile and capabilities
-- **Response**: Generated submissions and status
-- **Contact**: Government personnel relationships
-- **Event**: Immutable audit trail
-
-### Database Schema
-See `docs/database-schema.md` for detailed table structures and relationships.
-
-## Security & Compliance
-
-### Data Protection
-- Encryption at rest and in transit
-- Role-based access control (RBAC)
-- Audit logging for all operations
-- PII handling compliance
-
-### Government Regulations
-- FAR compliance verification
-- Conflict of interest monitoring
-- Documentation retention policies
-- Security clearance integration
-
-## Monitoring & Alerts
-
-### 24/7 Monitoring
-- System health dashboards
-- Performance metrics tracking
-- Error rate alerting
-- Cost optimization monitoring
-
-### Business Metrics
-- Opportunity discovery rate
-- Response quality scores
-- Win rate improvement
-- ROI tracking
-
-## Development
-
-### Contributing
-1. Create feature branch from `main`
-2. Follow conventional commit messages
-3. Add tests for new functionality
-4. Update documentation
-5. Submit pull request
-
-### Testing
 ```bash
-# Unit tests
-npm run test:unit
+# Installation
+make install          # Install all dependencies
+make install-dev      # Install development dependencies
 
-# Integration tests
-npm run test:integration
+# Testing
+make test            # Run all tests
+make smoke-test      # Run smoke tests
+make smoke-test-mcp  # Test MCP servers only
+make smoke-test-api  # Test API only
+make smoke-test-web  # Test web app only
+make smoke-test-infra # Test infrastructure only
 
-# End-to-end tests
-npm run test:e2e
+# Services
+make start-all       # Start all services
+make stop-all        # Stop all services
+make start-mcp       # Start MCP servers only
+make docker-up       # Start Docker services
 
-# Load testing
-npm run test:load
+# Code Quality
+make lint            # Run linting
+make format          # Format code
+make clean           # Clean build artifacts
+
+# Deployment
+make deploy-dev      # Deploy to development
+make deploy-prod     # Deploy to production
+make build           # Build all components
 ```
 
-### Code Quality
-- ESLint + Prettier for JavaScript/TypeScript
-- Black + isort for Python
-- Pre-commit hooks for formatting
-- SonarQube for quality analysis
+## 📊 Monitoring & Health Checks
 
-## Deployment
+### Smoke Test Suite
+The system includes comprehensive smoke tests for all components:
 
-### Infrastructure as Code
 ```bash
-# Development environment
-npm run deploy:dev
+# Quick health check (30 seconds)
+make smoke-test-quick
 
-# Staging environment
-npm run deploy:staging
+# Full system validation (5 minutes)
+make smoke-test
 
-# Production environment
-npm run deploy:prod
+# Component-specific testing
+./scripts/smoke_test.sh mcp-servers
+./scripts/smoke_test.sh infrastructure
 ```
 
-### CI/CD Pipeline
-- Automated testing on all PRs
-- Staging deployment on merge to `develop`
-- Production deployment on release tags
-- Rollback capabilities
+### Scheduled Monitoring
+```bash
+# Set up automated health checks
+make monitor-health
 
-## Cost Optimization
+# Schedule tests with notifications
+python scripts/schedule_smoke_tests.py
 
-### AWS Services
-- Lambda: Pay-per-execution model
-- DynamoDB: On-demand billing
-- SQS: Minimal message costs
-- EventBridge: Rule-based pricing
+# Test notification systems
+python scripts/schedule_smoke_tests.py --notify-only
+```
 
-### AI/ML Costs
-- Prefer smaller models for routine tasks
-- Cache responses where appropriate
-- Use AWS Bedrock only when cost-effective
-- Monitor token usage and optimize prompts
+### Health Metrics
+- **System Uptime**: 99.9% target
+- **Response Times**: <2s for all API endpoints
+- **Agent Success Rate**: >95% for automated processes
+- **Email Delivery**: 100% delivery confirmation
+- **MCP Server Health**: All 10 servers operational
 
-## Support & Maintenance
+## 📈 Business Metrics & Analytics
 
-### Documentation
-- Architecture decision records (ADRs)
-- API documentation with examples
-- Troubleshooting guides
-- Performance optimization tips
+### Key Performance Indicators
+- **Opportunity Discovery Rate**: New sources sought found daily
+- **Response Quality Score**: AI-generated compliance rating
+- **Win Rate Improvement**: Contract award percentage
+- **Relationship Engagement**: Government contact interactions
+- **Time to Response**: From discovery to submission
+- **ROI Tracking**: Cost vs. contract value won
 
-### Monitoring
-- Real-time system status dashboard
-- Performance metrics and trends
-- Error tracking and resolution
+### Reporting Dashboard
+- Real-time opportunity pipeline
+- Response status tracking
+- Relationship health scores
+- Agent performance metrics
 - Cost analysis and optimization
 
-## Roadmap
+## 🔒 Security & Compliance
 
-### Phase 1: Foundation (Weeks 1-4)
+### Data Protection
+- **Encryption**: AES-256 at rest, TLS 1.3 in transit
+- **Access Control**: Role-based permissions (RBAC)
+- **Audit Logging**: Immutable event sourcing
+- **PII Handling**: GDPR/CCPA compliance
+- **Backup**: Automated cross-region backups
+
+### Government Compliance
+- **FAR Compliance**: Automated regulation checking
+- **Conflict of Interest**: Monitoring and alerts
+- **Documentation Retention**: 7-year minimum
+- **Security Clearance**: Integration ready
+- **NIST Framework**: Cybersecurity compliance
+
+### Email Security
+- **SPF/DKIM/DMARC**: Email authentication
+- **Encryption**: End-to-end for sensitive communications
+- **Access Logs**: All email interactions tracked
+- **Retention**: Configurable retention policies
+
+## 💰 Cost Optimization
+
+### AWS Services (Monthly Estimates)
+- **Lambda**: $10-50 (pay-per-execution)
+- **DynamoDB**: $20-100 (on-demand billing)
+- **SQS**: $1-5 (minimal message costs)
+- **EventBridge**: $1-3 (rule-based pricing)
+- **S3**: $5-20 (document storage)
+- **CloudWatch**: $10-30 (monitoring and logs)
+
+### AI/ML Costs
+- **Anthropic Claude**: $50-200/month (efficient prompt optimization)
+- **Vector Database**: $20-50/month (Weaviate hosting)
+- **Search Engine**: $0 (BM25 implementation)
+
+### Total Estimated Cost
+- **Development**: $100-200/month
+- **Production**: $300-800/month (scales with usage)
+
+## 🗄️ Database Schema
+
+### Core Tables
+- **Opportunities**: Sources Sought notices with metadata
+- **Companies**: Business profiles and capabilities  
+- **Responses**: Generated submissions and status
+- **Contacts**: Government personnel relationships
+- **Events**: Immutable audit trail with event sourcing
+- **Approvals**: Human-in-the-loop decision tracking
+- **Tasks**: Agent task queue and status
+
+### Indexes and Access Patterns
+- **GSI-NoticeId**: Fast opportunity lookups
+- **GSI-Agency**: Agency-based filtering
+- **GSI-Email**: Contact management
+- **TTL-Tasks**: Automatic task cleanup
+
+## 🔍 API Documentation
+
+### Agent Endpoints
+```
+POST /api/agents/opportunity-finder/trigger
+GET  /api/agents/analyzer/status/{opportunity_id}
+POST /api/agents/response-generator/generate
+GET  /api/agents/relationship-manager/contacts
+POST /api/agents/email-manager/send
+GET  /api/agents/human-loop/approvals
+```
+
+### Webhook Endpoints
+```
+POST /webhooks/slack/events
+POST /webhooks/email/inbound
+POST /webhooks/sam-gov/updates
+POST /webhooks/anthropic/completions
+```
+
+### Health Endpoints
+```
+GET  /health
+GET  /health/agents
+GET  /health/database
+GET  /health/mcp-servers
+```
+
+## 🧪 Testing Strategy
+
+### Test Types
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: Agent interaction testing
+- **Smoke Tests**: System health validation
+- **End-to-End Tests**: Complete workflow testing
+- **Load Tests**: Performance and scalability
+- **Security Tests**: Vulnerability scanning
+
+### Test Execution
+```bash
+# Run all tests
+make test
+
+# Specific test types
+npm run test:unit
+npm run test:integration  
+npm run test:e2e
+npm run test:load
+
+# Smoke testing
+make smoke-test
+```
+
+## 📚 Documentation Structure
+
+```
+docs/
+├── architecture/           # System design documents
+├── api/                   # API documentation
+├── deployment/            # Deployment guides
+├── development/           # Development setup
+├── user-guides/          # End-user documentation
+├── troubleshooting/      # Common issues and solutions
+└── compliance/           # Security and regulatory docs
+```
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+**MCP Servers Not Starting**
+```bash
+# Check Docker status
+docker ps
+
+# Restart MCP servers
+make stop-mcp && make start-mcp
+
+# Check logs
+docker-compose logs -f
+```
+
+**Email Authentication Failing**
+```bash
+# Test email configuration
+python scripts/test_email_config.py
+
+# Check SMTP settings
+openssl s_client -connect smtp.gmail.com:587 -starttls smtp
+```
+
+**AWS Permissions Issues**
+```bash
+# Validate IAM permissions
+aws sts get-caller-identity
+
+# Test DynamoDB access
+aws dynamodb list-tables
+```
+
+### Health Check Commands
+```bash
+# Quick system check
+make smoke-test-quick
+
+# Full diagnostic
+./scripts/smoke_test.sh --verbose
+
+# Component-specific checks
+./scripts/smoke_test.sh infrastructure
+./scripts/smoke_test.sh mcp-servers
+```
+
+## 🚀 Deployment Guide
+
+### Environment Deployment
+```bash
+# Development
+make deploy-dev
+
+# Staging  
+make deploy-staging
+
+# Production
+make deploy-prod
+```
+
+### Infrastructure Components
+- CloudFormation stacks with dependency management
+- IAM roles with least-privilege access
+- VPC configuration for security
+- Auto-scaling Lambda concurrency
+- Multi-AZ deployment for high availability
+
+## 🗺️ Roadmap
+
+### ✅ Phase 1: Foundation (Completed)
 - Core agent implementation
-- Basic AWS infrastructure
+- AWS infrastructure deployment
 - SAM.gov integration
-- Simple response generation
+- Basic response generation
+- Comprehensive smoke testing
 
-### Phase 2: Intelligence (Weeks 5-8)
+### 🔄 Phase 2: Intelligence (In Progress)
 - Advanced analysis capabilities
 - Vector search implementation
-- Relationship tracking
-- Email automation
+- Relationship tracking enhancement
+- Email automation refinement
 
-### Phase 3: Automation (Weeks 9-12)
-- Slack integration
-- Workflow automation
-- Quality scoring
-- Performance optimization
+### 📋 Phase 3: Automation (Planned)
+- Advanced Slack integration
+- Workflow optimization
+- Quality scoring improvements
+- Performance monitoring
 
-### Phase 4: Advanced Features (Weeks 13-16)
+### 🎯 Phase 4: Advanced Features (Future)
 - Machine learning enhancements
 - Predictive analytics
 - Advanced relationship mapping
 - Enterprise features
 
-## Additional Capabilities
+## 🔧 Key Considerations for Implementation
 
-Based on the specifications and industry best practices, here are recommended additional capabilities:
+### Agent Email Management
+- **Dedicated vs. Shared**: Consider using dedicated email addresses for different agent functions
+- **Email Filtering**: Implement robust filtering to prevent cross-contamination
+- **Authentication**: Use app-specific passwords or OAuth for security
+- **Monitoring**: Track email delivery rates and response times
 
-### Enhanced Intelligence
-- **Competitor Analysis**: Track competitor wins and strategies
-- **Market Trend Analysis**: Identify emerging opportunity patterns
-- **Pricing Intelligence**: Historical contract value analysis
-- **Agency Behavior Modeling**: Predict agency preferences and timing
+### Production Readiness
+- **Error Handling**: Comprehensive error handling across all agents
+- **Retry Logic**: Exponential backoff for failed operations
+- **Circuit Breakers**: Prevent cascade failures
+- **Rate Limiting**: Respect API limits for all external services
 
-### Advanced Automation
-- **Document Version Control**: Track response iterations and approvals
-- **Team Collaboration**: Multi-user editing and review workflows
-- **Compliance Verification**: Automated FAR regulation checking
-- **Performance Analytics**: Win rate correlation analysis
+### Scalability Considerations
+- **Lambda Concurrency**: Configure appropriate concurrent execution limits
+- **DynamoDB Throughput**: Use on-demand billing for variable workloads
+- **Queue Management**: Monitor SQS queue depths and processing times
+- **Cost Monitoring**: Set up billing alerts and cost optimization
 
-### Integration Enhancements
-- **CRM Integration**: Salesforce, HubSpot connectivity
-- **Calendar Management**: Automated meeting scheduling
-- **Proposal Management**: Bridge to full proposal systems
-- **Financial Integration**: Cost tracking and ROI analysis
+### Security Best Practices
+- **Secrets Management**: Never hardcode sensitive information
+- **Network Security**: Use VPC for sensitive operations
+- **Audit Trails**: Complete logging of all agent actions
+- **Access Control**: Principle of least privilege for all components
 
-### AI/ML Enhancements
-- **Custom Models**: Fine-tuned models for government language
-- **Predictive Scoring**: AI-powered win probability assessment
-- **Natural Language Processing**: Advanced requirement extraction
-- **Sentiment Analysis**: Government communication tone analysis
+## 📞 Support & Maintenance
 
-## License
+### Getting Help
+- **Documentation**: Comprehensive guides in `/docs`
+- **GitHub Issues**: Bug reports and feature requests
+- **Smoke Tests**: Use for diagnosing issues
+- **Monitoring**: CloudWatch dashboards for system health
+
+### Maintenance Tasks
+- **Weekly**: Review agent performance metrics
+- **Monthly**: Update dependencies and security patches
+- **Quarterly**: Cost optimization review
+- **Annually**: Architecture review and updates
+
+## 📄 License
 
 MIT License - See LICENSE file for details
 
-## Contact
+## 🤝 Contributing
 
-For questions, issues, or contributions:
-- GitHub Issues: [Project Issues](./issues)
-- Documentation: [Wiki](./wiki)
-- Security: security@company.com
+1. Fork the repository
+2. Create a feature branch
+3. Follow conventional commit messages
+4. Add comprehensive tests
+5. Update documentation
+6. Submit a pull request
+
+---
+
+**Built with ❤️ for government contracting success**
+
+This comprehensive system provides everything needed for successful Sources Sought automation, from discovery to submission to relationship management. The production-ready architecture ensures reliability, scalability, and compliance with government contracting requirements.

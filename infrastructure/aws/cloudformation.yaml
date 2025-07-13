@@ -19,11 +19,12 @@ Parameters:
     Description: Slack bot token for notifications
     Default: ''
   
-  OpenAIAPIKey:
-    Type: String
-    NoEcho: true
-    Description: OpenAI API key for AI services
-    Default: ''
+  # OpenAIAPIKey deprecated - using Anthropic exclusively
+  # OpenAIAPIKey:
+  #   Type: String
+  #   NoEcho: true
+  #   Description: OpenAI API key for AI services
+  #   Default: ''
   
   SAMGovAPIKey:
     Type: String
@@ -562,7 +563,7 @@ Resources:
       Description: 'API keys for Sources Sought AI system'
       SecretString: !Sub |
         {
-          "openai_api_key": "${OpenAIAPIKey}",
+          # "openai_api_key": "${OpenAIAPIKey}",  # Deprecated
           "slack_bot_token": "${SlackBotToken}",
           "sam_gov_api_key": "${SAMGovAPIKey}"
         }

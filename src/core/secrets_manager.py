@@ -151,16 +151,17 @@ async def get_anthropic_api_key() -> str:
         raise
 
 
-async def get_openai_api_key() -> str:
-    """Get OpenAI API key from Secrets Manager"""
-    try:
-        return await secrets_manager.get_secret_value(
-            SecretNames.API_SECRETS, 
-            "openai_api_key"
-        )
-    except Exception as e:
-        logger.error(f"Failed to get OpenAI API key: {e}")
-        raise
+# OpenAI support deprecated - using Anthropic Claude instead
+# async def get_openai_api_key() -> str:
+#     """Get OpenAI API key from Secrets Manager"""
+#     try:
+#         return await secrets_manager.get_secret_value(
+#             SecretNames.API_SECRETS, 
+#             "openai_api_key"
+#         )
+#     except Exception as e:
+#         logger.error(f"Failed to get OpenAI API key: {e}")
+#         raise
 
 
 async def get_slack_credentials() -> Dict[str, str]:

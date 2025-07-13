@@ -68,10 +68,11 @@ def setup_api_secrets(secrets_client, anthropic_key, openai_key=None):
         "created_at": datetime.utcnow().isoformat()
     }
     
+    # OpenAI key support deprecated but maintained for backwards compatibility
     if openai_key:
         secret_value["openai_api_key"] = openai_key
     
-    description = "API keys for AI services (Anthropic, OpenAI)"
+    description = "API keys for AI services (Anthropic Claude)"
     
     return create_secret(secrets_client, secret_name, secret_value, description)
 
@@ -162,7 +163,7 @@ def main():
     parser.add_argument("--aws-access-key", required=True, help="AWS Access Key ID")
     parser.add_argument("--aws-secret-key", required=True, help="AWS Secret Access Key")
     parser.add_argument("--anthropic-key", required=True, help="Anthropic API Key")
-    parser.add_argument("--openai-key", help="OpenAI API Key (optional)")
+    parser.add_argument("--openai-key", help="OpenAI API Key (deprecated, optional for backwards compatibility)")
     parser.add_argument("--region", default="us-east-1", help="AWS Region")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be created without creating")
     

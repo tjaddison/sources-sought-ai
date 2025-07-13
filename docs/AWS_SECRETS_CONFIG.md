@@ -39,7 +39,7 @@ All secrets are stored in AWS Secrets Manager with the prefix `sources-sought-ai
 | Secret Name | Content | Purpose |
 |-------------|---------|---------|
 | `sources-sought-ai/main` | AWS credentials | Core AWS access |
-| `sources-sought-ai/api-keys` | AI API keys | Anthropic, OpenAI |
+| `sources-sought-ai/api-keys` | AI API keys | Anthropic Claude |
 | `sources-sought-ai/auth` | OAuth secrets | Google, JWT, NextAuth |
 | `sources-sought-ai/communication` | Slack, Email | Bot tokens, SMTP |
 | `sources-sought-ai/database` | Encryption keys | Database security |
@@ -59,7 +59,7 @@ All secrets are stored in AWS Secrets Manager with the prefix `sources-sought-ai
 ```json
 {
   "anthropic_api_key": "YOUR_ANTHROPIC_API_KEY",
-  "openai_api_key": "YOUR_OPENAI_API_KEY",
+  # "openai_api_key": "YOUR_OPENAI_API_KEY",  # Deprecated
   "created_at": "2024-01-01T00:00:00Z"
 }
 ```

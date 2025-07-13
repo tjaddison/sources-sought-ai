@@ -103,7 +103,7 @@ After conducting an exhaustive deep dive analysis of the entire Sources Sought A
 
 #### 2. Analyzer Agent  
 - **Real Implementation**: Complete requirement extraction and analysis
-- **AI Integration**: OpenAI API for requirement parsing
+- **AI Integration**: Anthropic Claude API for requirement parsing and response generation
 - **Capability Matching**: Advanced gap analysis algorithms
 - **Strategic Analysis**: Win probability and strategic value calculations
 
