@@ -1,0 +1,48 @@
+# Core dependencies for Sources Sought AI system
+boto3>=1.34.0
+botocore>=1.34.0
+
+# AI and ML
+openai>=1.12.0
+anthropic>=0.8.0
+
+# Communication
+slack-sdk>=3.26.0
+requests>=2.31.0
+
+# Email
+imaplib3>=0.9.0
+
+# Data processing
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Search capabilities  
+rank-bm25>=0.2.2
+scikit-learn>=1.3.0
+
+# Web framework (for NextJS API backend)
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Authentication
+python-jose[cryptography]>=3.3.0
+python-multipart>=0.0.6
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+asyncio>=3.4.3
+aiohttp>=3.9.0
+
+# Development dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.7.0
+
+# Production dependencies
+gunicorn>=21.2.0
+structlog>=23.2.0

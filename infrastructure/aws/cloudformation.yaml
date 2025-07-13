@@ -1,0 +1,684 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Sources Sought AI - Multi-Agent System Infrastructure'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+  
+  ProjectName:
+    Type: String
+    Default: sources-sought-ai
+    Description: Project name for resource naming
+  
+  SlackBotToken:
+    Type: String
+    NoEcho: true
+    Description: Slack bot token for notifications
+    Default: ''
+  
+  OpenAIAPIKey:
+    Type: String
+    NoEcho: true
+    Description: OpenAI API key for AI services
+    Default: ''
+  
+  SAMGovAPIKey:
+    Type: String
+    NoEcho: true
+    Description: SAM.gov API key
+    Default: ''
+
+Resources:
+  # DynamoDB Tables
+  OpportunitiesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-${Environment}-opportunities'
+      BillingMode: ON_DEMAND
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: notice_id
+          AttributeType: S
+        - AttributeName: agency
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: notice-id-index
+          KeySchema:
+            - AttributeName: notice_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agency-index
+          KeySchema:
+            - AttributeName: agency
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  CompaniesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-${Environment}-companies'
+      BillingMode: ON_DEMAND
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  ResponsesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-${Environment}-responses'
+      BillingMode: ON_DEMAND
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: opportunity_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: opportunity-id-index
+          KeySchema:
+            - AttributeName: opportunity_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  ContactsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-${Environment}-contacts'
+      BillingMode: ON_DEMAND
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+        - AttributeName: agency
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: email-index
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: agency-index
+          KeySchema:
+            - AttributeName: agency
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  EventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-${Environment}-events'
+      BillingMode: ON_DEMAND
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: aggregate_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: aggregate-id-timestamp-index
+          KeySchema:
+            - AttributeName: aggregate_id
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  ApprovalsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-${Environment}-approvals'
+      BillingMode: ON_DEMAND
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  # SQS Queues for Inter-Agent Communication
+  OpportunityFinderQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-opportunity-finder-queue'
+      VisibilityTimeoutSeconds: 300
+      MessageRetentionPeriod: 1209600  # 14 days
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt OpportunityFinderDLQ.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  OpportunityFinderDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-opportunity-finder-dlq'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  AnalyzerQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-analyzer-queue'
+      VisibilityTimeoutSeconds: 900  # 15 minutes for analysis
+      MessageRetentionPeriod: 1209600
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt AnalyzerDLQ.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  AnalyzerDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-analyzer-dlq'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  ResponseGeneratorQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-response-generator-queue'
+      VisibilityTimeoutSeconds: 600  # 10 minutes for response generation
+      MessageRetentionPeriod: 1209600
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ResponseGeneratorDLQ.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  ResponseGeneratorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-response-generator-dlq'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  RelationshipManagerQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-relationship-manager-queue'
+      VisibilityTimeoutSeconds: 300
+      MessageRetentionPeriod: 1209600
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RelationshipManagerDLQ.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  RelationshipManagerDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-relationship-manager-dlq'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  EmailManagerQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-email-manager-queue'
+      VisibilityTimeoutSeconds: 300
+      MessageRetentionPeriod: 1209600
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt EmailManagerDLQ.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  EmailManagerDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-email-manager-dlq'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  HumanLoopQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-human-loop-queue'
+      VisibilityTimeoutSeconds: 300
+      MessageRetentionPeriod: 1209600
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt HumanLoopDLQ.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  HumanLoopDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-human-loop-dlq'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  # IAM Role for Lambda Functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-${Environment}-lambda-execution-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchGetItem
+                  - dynamodb:BatchWriteItem
+                Resource:
+                  - !GetAtt OpportunitiesTable.Arn
+                  - !GetAtt CompaniesTable.Arn
+                  - !GetAtt ResponsesTable.Arn
+                  - !GetAtt ContactsTable.Arn
+                  - !GetAtt EventsTable.Arn
+                  - !GetAtt ApprovalsTable.Arn
+                  - !Sub "${OpportunitiesTable.Arn}/index/*"
+                  - !Sub "${ContactsTable.Arn}/index/*"
+                  - !Sub "${ResponsesTable.Arn}/index/*"
+                  - !Sub "${EventsTable.Arn}/index/*"
+        - PolicyName: SQSAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:GetQueueUrl
+                Resource:
+                  - !GetAtt OpportunityFinderQueue.Arn
+                  - !GetAtt AnalyzerQueue.Arn
+                  - !GetAtt ResponseGeneratorQueue.Arn
+                  - !GetAtt RelationshipManagerQueue.Arn
+                  - !GetAtt EmailManagerQueue.Arn
+                  - !GetAtt HumanLoopQueue.Arn
+        - PolicyName: CloudWatchAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref APIKeysSecret
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  # Secrets Manager for API Keys
+  APIKeysSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub '${ProjectName}-${Environment}-api-keys'
+      Description: 'API keys for Sources Sought AI system'
+      SecretString: !Sub |
+        {
+          "openai_api_key": "${OpenAIAPIKey}",
+          "slack_bot_token": "${SlackBotToken}",
+          "sam_gov_api_key": "${SAMGovAPIKey}"
+        }
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  # EventBridge Rule for Scheduled Opportunity Discovery
+  OpportunityDiscoverySchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${ProjectName}-${Environment}-opportunity-discovery-schedule'
+      Description: 'Trigger opportunity discovery daily at 8 AM EST'
+      ScheduleExpression: 'cron(0 13 * * ? *)'  # 8 AM EST = 1 PM UTC
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt OpportunityFinderLambda.Arn
+          Id: OpportunityFinderTarget
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  # Lambda Permission for EventBridge
+  OpportunityFinderLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OpportunityFinderLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt OpportunityDiscoverySchedule.Arn
+
+  # Lambda Functions (placeholders - actual deployment would use SAM or CDK)
+  OpportunityFinderLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-opportunity-finder'
+      Runtime: python3.11
+      Handler: agents.opportunity_finder.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {'statusCode': 200, 'body': 'Placeholder function'}
+      Timeout: 900  # 15 minutes
+      MemorySize: 1024
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          PROJECT_NAME: !Ref ProjectName
+          SECRETS_ARN: !Ref APIKeysSecret
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+        - Key: Agent
+          Value: opportunity-finder
+
+  # CloudWatch Log Groups
+  OpportunityFinderLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-opportunity-finder'
+      RetentionInDays: 30
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  # CloudWatch Alarms for Monitoring
+  OpportunityFinderErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-opportunity-finder-errors'
+      AlarmDescription: 'Alert when OpportunityFinder function has errors'
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref OpportunityFinderLambda
+      AlarmActions:
+        - !Ref ErrorNotificationTopic
+
+  # SNS Topic for Error Notifications
+  ErrorNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${ProjectName}-${Environment}-error-notifications'
+      DisplayName: 'Sources Sought AI Error Notifications'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+  # S3 Bucket for Document Storage
+  DocumentStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ProjectName}-${Environment}-documents-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Team
+          Value: contracting-ai
+
+Outputs:
+  OpportunitiesTableName:
+    Description: 'DynamoDB table name for opportunities'
+    Value: !Ref OpportunitiesTable
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-opportunities-table'
+
+  CompaniesTableName:
+    Description: 'DynamoDB table name for companies'
+    Value: !Ref CompaniesTable
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-companies-table'
+
+  ResponsesTableName:
+    Description: 'DynamoDB table name for responses'
+    Value: !Ref ResponsesTable
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-responses-table'
+
+  ContactsTableName:
+    Description: 'DynamoDB table name for contacts'
+    Value: !Ref ContactsTable
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-contacts-table'
+
+  EventsTableName:
+    Description: 'DynamoDB table name for events'
+    Value: !Ref EventsTable
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-events-table'
+
+  LambdaExecutionRoleArn:
+    Description: 'ARN of the Lambda execution role'
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-lambda-role-arn'
+
+  APIKeysSecretArn:
+    Description: 'ARN of the API keys secret'
+    Value: !Ref APIKeysSecret
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-api-keys-secret-arn'
+
+  DocumentStorageBucketName:
+    Description: 'S3 bucket name for document storage'
+    Value: !Ref DocumentStorageBucket
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-documents-bucket'
