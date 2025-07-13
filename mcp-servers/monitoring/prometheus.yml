@@ -1,0 +1,50 @@
+# Prometheus configuration for Sources Sought AI MCP Servers
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Sources Sought Monitoring MCP Server
+  - job_name: 'sources-sought-monitoring'
+    static_configs:
+      - targets: ['monitoring-mcp:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Docker containers metrics (if docker exporter is running)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+    scrape_interval: 30s
+
+  # Node exporter (if running)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['host.docker.internal:9100']
+    scrape_interval: 30s
+
+  # Custom application metrics
+  - job_name: 'sources-sought-apps'
+    static_configs:
+      - targets: 
+          - 'email-mcp:8080'
+          - 'slack-mcp:8080'
+          - 'docgen-mcp:8080'
+          - 'search-mcp:8080'
+          - 'database-mcp:8080'
+          - 'aws-mcp:8080'
+          - 'crm-mcp:8080'
+          - 'prompts-mcp:8080'
+          - 'sam-mcp:8080'
+    metrics_path: '/metrics'
+    scrape_interval: 60s
