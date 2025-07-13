@@ -1,0 +1,10 @@
+# AWS Services MCP Server Requirements
+mcp>=1.0.0
+boto3>=1.34.0
+botocore>=1.34.0
+
+# Async support
+aioboto3>=12.3.0
+
+# Utilities
+python-dateutil>=2.8.0

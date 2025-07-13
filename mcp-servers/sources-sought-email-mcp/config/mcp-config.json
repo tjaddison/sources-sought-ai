@@ -1,0 +1,44 @@
+{
+  "name": "sources-sought-email-mcp",
+  "version": "1.0.0",
+  "description": "Email operations for Sources Sought AI system",
+  "capabilities": {
+    "resources": true,
+    "tools": true,
+    "prompts": false,
+    "logging": true
+  },
+  "configuration": {
+    "email_providers": {
+      "gmail": {
+        "smtp_host": "smtp.gmail.com",
+        "smtp_port": 587,
+        "imap_host": "imap.gmail.com",
+        "imap_port": 993,
+        "use_ssl": true
+      },
+      "outlook": {
+        "smtp_host": "smtp-mail.outlook.com",
+        "smtp_port": 587,
+        "imap_host": "outlook.office365.com",
+        "imap_port": 993,
+        "use_ssl": true
+      }
+    },
+    "default_settings": {
+      "max_emails_per_check": 50,
+      "email_retention_days": 30,
+      "auto_mark_read": false,
+      "include_attachments": true
+    }
+  },
+  "environment_variables": [
+    "EMAIL_USERNAME",
+    "EMAIL_PASSWORD",
+    "EMAIL_PROVIDER",
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "IMAP_HOST", 
+    "IMAP_PORT"
+  ]
+}

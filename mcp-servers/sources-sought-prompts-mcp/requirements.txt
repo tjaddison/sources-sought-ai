@@ -1,0 +1,8 @@
+# Prompt Catalog MCP Server Requirements
+mcp>=1.0.0
+
+# Template processing
+jinja2>=3.1.0
+
+# Utilities
+uuid>=1.30

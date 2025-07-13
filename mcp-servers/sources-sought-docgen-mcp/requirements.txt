@@ -1,0 +1,14 @@
+# Document Generation MCP Server Requirements
+mcp>=1.0.0
+
+# Template processing
+jinja2>=3.1.0
+pydantic>=2.5.0
+
+# Document processing
+python-docx>=1.1.0
+markupsafe>=2.1.0
+
+# Text analysis
+nltk>=3.8.0
+textstat>=0.7.0

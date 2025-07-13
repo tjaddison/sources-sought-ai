@@ -1,0 +1,12 @@
+# Email MCP Server Requirements
+mcp>=1.0.0
+asyncio-smtp>=0.6.0
+aiosmtplib>=3.0.0
+aioimaplib>=1.0.1
+
+# Email handling
+email-validator>=2.1.0
+premailer>=3.10.0
+
+# Template processing
+jinja2>=3.1.0
