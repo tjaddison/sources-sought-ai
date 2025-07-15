@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Sources Sought AI - MCP Servers Integration Test
+GovBiz AI - MCP Servers Integration Test
 
 This script performs end-to-end integration testing of the MCP server ecosystem.
 It tests the complete workflow from opportunity discovery to response generation.
@@ -140,7 +140,7 @@ class MCPIntegrationTester:
         # Step 4: Test human approval workflow (Slack MCP)
         try:
             # Test Slack integration
-            if await self.test_mcp_server_health("sources-sought-slack-mcp", 8000):
+            if await self.test_mcp_server_health("govbiz-slack-mcp", 8000):
                 self.log_test("Human approval workflow ready", "PASS", "Slack integration available")
             else:
                 self.log_test("Human approval workflow", "FAIL", "Slack integration unavailable")
@@ -196,7 +196,7 @@ class MCPIntegrationTester:
         monitoring_success = True
         
         # Test monitoring MCP server
-        if await self.test_mcp_server_health("sources-sought-monitoring-mcp", 9090):
+        if await self.test_mcp_server_health("govbiz-monitoring-mcp", 9090):
             self.log_test("Monitoring server health", "PASS", "Metrics endpoint available")
         else:
             self.log_test("Monitoring server health", "FAIL", "Metrics endpoint unavailable")
@@ -283,7 +283,7 @@ class MCPIntegrationTester:
         # Test response times
         try:
             start_time = datetime.now()
-            await self.test_mcp_server_health("sources-sought-monitoring-mcp", 9090)
+            await self.test_mcp_server_health("govbiz-monitoring-mcp", 9090)
             response_time = (datetime.now() - start_time).total_seconds()
             
             if response_time < 5.0:
@@ -315,7 +315,7 @@ class MCPIntegrationTester:
 
     async def run_all_tests(self):
         """Run all integration tests"""
-        print(f"{Colors.BOLD}{Colors.CYAN}🧪 Sources Sought AI - MCP Servers Integration Test{Colors.END}")
+        print(f"{Colors.BOLD}{Colors.CYAN}🧪 GovBiz AI - MCP Servers Integration Test{Colors.END}")
         print(f"{Colors.CYAN}Starting comprehensive integration test suite...{Colors.END}\n")
         
         start_time = datetime.now()
@@ -324,16 +324,16 @@ class MCPIntegrationTester:
         print(f"{Colors.BOLD}{Colors.BLUE}🏥 Testing MCP Server Health{Colors.END}")
         
         servers = [
-            ("sources-sought-email-mcp", None),
-            ("sources-sought-sam-mcp", None),
-            ("sources-sought-docgen-mcp", None),
-            ("sources-sought-search-mcp", None),
-            ("sources-sought-slack-mcp", 8000),
-            ("sources-sought-database-mcp", None),
-            ("sources-sought-aws-mcp", None),
-            ("sources-sought-crm-mcp", None),
-            ("sources-sought-monitoring-mcp", 9090),
-            ("sources-sought-prompts-mcp", None)
+            ("govbiz-email-mcp", None),
+            ("govbiz-sam-mcp", None),
+            ("govbiz-docgen-mcp", None),
+            ("govbiz-search-mcp", None),
+            ("govbiz-slack-mcp", 8000),
+            ("govbiz-database-mcp", None),
+            ("govbiz-aws-mcp", None),
+            ("govbiz-crm-mcp", None),
+            ("govbiz-monitoring-mcp", 9090),
+            ("govbiz-prompts-mcp", None)
         ]
         
         health_results = []

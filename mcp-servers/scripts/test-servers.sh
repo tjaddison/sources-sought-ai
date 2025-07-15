@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Sources Sought AI - MCP Servers Test Script
+# GovBiz AI - MCP Servers Test Script
 # This script runs basic tests on all MCP servers
 
 set -e
 
-echo "🧪 Testing Sources Sought AI MCP Servers..."
+echo "🧪 Testing GovBiz AI MCP Servers..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -40,16 +40,16 @@ run_test() {
 echo -e "${BLUE}🐳 Testing Docker containers...${NC}"
 
 containers=(
-    "sources-sought-email-mcp"
-    "sources-sought-sam-mcp"
-    "sources-sought-docgen-mcp"
-    "sources-sought-search-mcp"
-    "sources-sought-slack-mcp"
-    "sources-sought-database-mcp"
-    "sources-sought-aws-mcp"
-    "sources-sought-crm-mcp"
-    "sources-sought-monitoring-mcp"
-    "sources-sought-prompts-mcp"
+    "govbiz-email-mcp"
+    "govbiz-sam-mcp"
+    "govbiz-docgen-mcp"
+    "govbiz-search-mcp"
+    "govbiz-slack-mcp"
+    "govbiz-database-mcp"
+    "govbiz-aws-mcp"
+    "govbiz-crm-mcp"
+    "govbiz-monitoring-mcp"
+    "govbiz-prompts-mcp"
 )
 
 for container in "${containers[@]}"; do
@@ -152,8 +152,8 @@ run_test "Monitoring MCP logs available" "docker-compose logs monitoring-mcp | h
 # Test resource usage
 echo -e "\n${BLUE}📊 Testing resource usage...${NC}"
 
-run_test "Memory usage reasonable" "docker stats --no-stream --format 'table {{.Container}}\t{{.MemUsage}}' | grep sources-sought | awk '{print \$2}' | sed 's/MiB.*//' | awk '{if(\$1>1000) exit 1}'"
-run_test "CPU usage reasonable" "docker stats --no-stream --format 'table {{.Container}}\t{{.CPUPerc}}' | grep sources-sought | awk '{print \$2}' | sed 's/%//' | awk '{if(\$1>50) exit 1}'"
+run_test "Memory usage reasonable" "docker stats --no-stream --format 'table {{.Container}}\t{{.MemUsage}}' | grep govbiz | awk '{print \$2}' | sed 's/MiB.*//' | awk '{if(\$1>1000) exit 1}'"
+run_test "CPU usage reasonable" "docker stats --no-stream --format 'table {{.Container}}\t{{.CPUPerc}}' | grep govbiz | awk '{print \$2}' | sed 's/%//' | awk '{if(\$1>50) exit 1}'"
 
 # Display test results
 echo -e "\n${BLUE}📊 Test Summary:${NC}"

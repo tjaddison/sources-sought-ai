@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Sources Sought AI - MCP Servers Setup Script
+# GovBiz AI - MCP Servers Setup Script
 # This script sets up the complete MCP server environment
 
 set -e  # Exit on any error
 
-echo "🚀 Setting up Sources Sought AI MCP Servers..."
+echo "🚀 Setting up GovBiz AI MCP Servers..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -118,12 +118,12 @@ sleep 30
 echo -e "${BLUE}🏥 Performing health checks...${NC}"
 
 services=(
-    "sources-sought-email-mcp:8000"
-    "sources-sought-slack-mcp:8000"
-    "sources-sought-monitoring-mcp:9090"
-    "sources-sought-prometheus:9091"
-    "sources-sought-grafana:3000"
-    "sources-sought-redis:6379"
+    "govbiz-email-mcp:8000"
+    "govbiz-slack-mcp:8000"
+    "govbiz-monitoring-mcp:9090"
+    "govbiz-prometheus:9091"
+    "govbiz-grafana:3000"
+    "govbiz-redis:6379"
 )
 
 healthy_services=0
@@ -164,4 +164,4 @@ echo -e "${YELLOW}2. Set up your company profile in the system${NC}"
 echo -e "${YELLOW}3. Configure NAICS codes and capabilities${NC}"
 echo -e "${YELLOW}4. Test the opportunity processing pipeline${NC}"
 
-echo -e "\n${GREEN}✨ Sources Sought AI MCP Servers are ready!${NC}"
+echo -e "\n${GREEN}✨ GovBiz AI MCP Servers are ready!${NC}"

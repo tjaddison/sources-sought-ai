@@ -1,13 +1,14 @@
-# Sources Sought AI - Multi-Agent Government Contracting Solution
+# GovBiz.ai - Comprehensive Government Contracting Automation Platform
 
-A comprehensive, production-ready multi-agent system for automatically discovering, analyzing, and responding to government Sources Sought notices according to strategic contracting principles. Built on AWS serverless architecture with Anthropic Claude AI integration.
+A comprehensive, production-ready multi-agent platform for automating all aspects of government contracting including Sources Sought discovery, solicitation monitoring, proposal generation, and contract vehicle tracking. Built on AWS serverless architecture with Anthropic Claude AI integration and extensible capability framework.
 
 ## 🎯 Overview
 
-Sources Sought notices are requests for information (RFI) posted by government agencies during early procurement stages to identify potential vendors, conduct market research, and shape requirements. This system provides automated intelligence gathering, response generation, and relationship management to maximize contracting success.
+GovBiz.ai is an extensible platform for automating government contracting processes. The initial capability focuses on Sources Sought notices - requests for information (RFI) posted by government agencies during early procurement stages. The platform provides automated intelligence gathering, response generation, and relationship management across multiple contracting processes.
 
 ### Key Benefits
 
+- **🚀 Multi-Capability Platform**: Support for Sources Sought, solicitations, contract vehicles, and more
 - **🎯 Early Positioning**: Get on government radar 12-18 months before contract award
 - **📝 Requirements Shaping**: Influence solicitations to favor your capabilities  
 - **🏆 Competition Limiting**: Trigger small business set-asides through "Rule of Two"
@@ -15,6 +16,7 @@ Sources Sought notices are requests for information (RFI) posted by government a
 - **🤝 Relationship Building**: Start crucial agency relationships early
 - **⚡ Process Automation**: 75% reduction in response time with 100% compliance
 - **🎯 Strategic Positioning**: AI-powered response optimization for maximum impact
+- **🔧 Extensible Architecture**: Easy to add new contracting capabilities
 
 ## 🏗️ System Architecture
 

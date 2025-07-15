@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  # Local development stack for Sources Sought AI
+  # Local development stack for GovBiz.ai
   
   dynamodb-local:
     image: amazon/dynamodb-local:latest
-    container_name: sources-sought-dynamodb
+    container_name: govbiz-ai-dynamodb
     ports:
       - "8000:8000"
     command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "./data"]
@@ -19,7 +19,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: sources-sought-redis
+    container_name: govbiz-ai-redis
     ports:
       - "6379:6379"
     volumes:

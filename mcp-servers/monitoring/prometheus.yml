@@ -1,4 +1,4 @@
-# Prometheus configuration for Sources Sought AI MCP Servers
+# Prometheus configuration for GovBiz AI MCP Servers
 
 global:
   scrape_interval: 15s
@@ -14,8 +14,8 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Sources Sought Monitoring MCP Server
-  - job_name: 'sources-sought-monitoring'
+  # GovBiz Monitoring MCP Server
+  - job_name: 'govbiz-monitoring'
     static_configs:
       - targets: ['monitoring-mcp:9090']
     metrics_path: '/metrics'
@@ -34,7 +34,7 @@ scrape_configs:
     scrape_interval: 30s
 
   # Custom application metrics
-  - job_name: 'sources-sought-apps'
+  - job_name: 'govbiz-apps'
     static_configs:
       - targets: 
           - 'email-mcp:8080'

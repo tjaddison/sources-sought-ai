@@ -1,10 +1,10 @@
-# Sources Sought AI - MCP Servers
+# GovBiz AI - MCP Servers
 
-This directory contains Model Context Protocol (MCP) servers that provide tools, resources, and capabilities for the Sources Sought AI agent system. Each MCP server is specialized for specific functionality and can be used independently or together to create a comprehensive government contracting automation system.
+This directory contains Model Context Protocol (MCP) servers that provide tools, resources, and capabilities for the GovBiz AI agent system. Each MCP server is specialized for specific functionality and can be used independently or together to create a comprehensive government contracting automation system.
 
 ## Overview
 
-The Sources Sought AI system uses MCP servers to modularize functionality and provide clean interfaces between different system components. This architecture enables:
+The GovBiz AI system uses MCP servers to modularize functionality and provide clean interfaces between different system components. This architecture enables:
 
 - **Modularity**: Each server handles a specific domain (email, search, document generation, etc.)
 - **Reusability**: Servers can be used by multiple agents or external systems
@@ -14,7 +14,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 
 ## Available MCP Servers
 
-### 1. Email MCP Server (`sources-sought-email-mcp`)
+### 1. Email MCP Server (`govbiz-email-mcp`)
 
 **Purpose**: Email operations with government contracting templates
 
@@ -39,7 +39,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - Email signatures and guidelines
 - Communication best practices
 
-### 2. SAM.gov MCP Server (`sources-sought-sam-mcp`)
+### 2. SAM.gov MCP Server (`govbiz-sam-mcp`)
 
 **Purpose**: Government contracting data access and processing
 
@@ -66,7 +66,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - Opportunity types and explanations
 - CSV schema documentation
 
-### 3. Document Generation MCP Server (`sources-sought-docgen-mcp`)
+### 3. Document Generation MCP Server (`govbiz-docgen-mcp`)
 
 **Purpose**: Generate sources sought responses and compliance documents
 
@@ -91,7 +91,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - Sample variables for template testing
 - Government document formatting guidelines
 
-### 4. Search & Analysis MCP Server (`sources-sought-search-mcp`)
+### 4. Search & Analysis MCP Server (`govbiz-search-mcp`)
 
 **Purpose**: BM25 search and opportunity analysis with government contracting optimization
 
@@ -116,7 +116,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - Scoring models and configurations
 - Analysis report templates
 
-### 5. Slack Integration MCP Server (`sources-sought-slack-mcp`)
+### 5. Slack Integration MCP Server (`govbiz-slack-mcp`)
 
 **Purpose**: Human-in-the-loop workflows and notifications via Slack
 
@@ -144,7 +144,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - Approval workflow configurations
 - Slack setup guide
 
-### 6. Database Operations MCP Server (`sources-sought-database-mcp`)
+### 6. Database Operations MCP Server (`govbiz-database-mcp`)
 
 **Purpose**: Advanced DynamoDB operations and event sourcing
 
@@ -174,7 +174,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - Event type definitions
 - DynamoDB best practices
 
-### 7. AWS Services MCP Server (`sources-sought-aws-mcp`)
+### 7. AWS Services MCP Server (`govbiz-aws-mcp`)
 
 **Purpose**: AWS cloud service integrations and operations
 
@@ -203,7 +203,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - IAM policy templates
 - Architecture diagrams and documentation
 
-### 8. Relationship Management MCP Server (`sources-sought-crm-mcp`)
+### 8. Relationship Management MCP Server (`govbiz-crm-mcp`)
 
 **Purpose**: Government contact and relationship management (CRM)
 
@@ -234,7 +234,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - Relationship building strategies
 - Communication best practices
 
-### 9. Monitoring & Alerts MCP Server (`sources-sought-monitoring-mcp`)
+### 9. Monitoring & Alerts MCP Server (`govbiz-monitoring-mcp`)
 
 **Purpose**: System health monitoring and alerting
 
@@ -262,7 +262,7 @@ The Sources Sought AI system uses MCP servers to modularize functionality and pr
 - Incident response runbooks
 - SLA targets and current status
 
-### 10. Prompt Catalog MCP Server (`sources-sought-prompts-mcp`)
+### 10. Prompt Catalog MCP Server (`govbiz-prompts-mcp`)
 
 **Purpose**: AI prompt templates and management for all agents
 
@@ -377,9 +377,9 @@ Agents often use multiple MCP servers for complex workflows:
 ```python
 class ResponseGeneratorAgent:
     def __init__(self):
-        self.docgen_client = Client("sources-sought-docgen-mcp")
-        self.prompt_client = Client("sources-sought-prompts-mcp")
-        self.aws_client = Client("sources-sought-aws-mcp")
+        self.docgen_client = Client("govbiz-docgen-mcp")
+        self.prompt_client = Client("govbiz-prompts-mcp")
+        self.aws_client = Client("govbiz-aws-mcp")
     
     async def generate_response(self, opportunity_data):
         # Get AI prompt

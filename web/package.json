@@ -1,7 +1,7 @@
 {
-  "name": "sources-sought-ai-web",
+  "name": "govbiz-ai-web",
   "version": "1.0.0",
-  "description": "Web interface for Sources Sought AI system",
+  "description": "Web interface for GovBiz.ai government contracting platform",
   "private": true,
   "scripts": {
     "dev": "next dev",

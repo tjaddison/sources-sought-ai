@@ -1,6 +1,6 @@
-# CLAUDE.md - Building Effective Agents to Respond to Sources Sought in Government Contracting
+# CLAUDE.md - GovBiz.ai Government Contracting Automation Platform
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with the GovBiz.ai platform codebase. GovBiz.ai is an extensible platform for automating government contracting processes, with Sources Sought as the initial capability.
 
 ## What Are Sources Sought?
 

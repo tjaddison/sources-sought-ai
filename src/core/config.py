@@ -1,11 +1,12 @@
 """
-Core configuration module for Sources Sought AI system.
+Core configuration module for GovBiz.ai platform.
 Integrates AWS Secrets Manager and AppConfig for secure, dynamic configuration.
+Supports multiple government contracting capabilities.
 """
 
 import os
 import asyncio
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -40,17 +41,17 @@ class AWSConfig:
     sqs_endpoint_url: Optional[str] = None
     
     # Resource naming
-    dynamodb_table_prefix: str = "ss-dev"
-    sqs_queue_prefix: str = "ss-dev"
-    lambda_function_prefix: str = "ss-dev"
-    eventbridge_rule_prefix: str = "ss-dev"
+    dynamodb_table_prefix: str = "govbiz-dev"
+    sqs_queue_prefix: str = "govbiz-dev"
+    lambda_function_prefix: str = "govbiz-dev"
+    eventbridge_rule_prefix: str = "govbiz-dev"
     
     # Tags
     common_tags: Dict[str, str] = field(default_factory=lambda: {
-        "Project": "sources-sought-ai",
+        "Project": "govbiz-ai",
         "Environment": "development",
         "ManagedBy": "terraform",
-        "Team": "contracting-ai"
+        "Team": "govbiz-platform"
     })
 
 
@@ -74,40 +75,24 @@ class AIConfig:
 
 
 @dataclass
-class AgentConfig:
-    """Individual agent configurations (loaded from AppConfig)"""
-    # OpportunityFinder Agent
-    opportunity_finder_schedule: str = "cron(0 8 * * ? *)"
-    sam_csv_url: str = "https://s3.amazonaws.com/falextracts/Contract%20Opportunities/datagov/ContractOpportunitiesFullCSV.csv"
-    csv_processing_batch_size: int = 1000
-    search_lookback_days: int = 30
+class CapabilityConfig:
+    """Configuration for capability-specific settings (loaded from AppConfig)"""
+    # Enabled capabilities
+    enabled_capabilities: List[str] = field(default_factory=lambda: ["sources-sought"])
     
-    # Matching criteria
-    company_naics: list = field(default_factory=list)
-    keywords: list = field(default_factory=list)
-    excluded_keywords: list = field(default_factory=list)
-    target_agencies: list = field(default_factory=list)
-    min_match_score: float = 30.0
-    matching_weights: Dict[str, float] = field(default_factory=dict)
+    # Default agent settings (overridden by capability-specific configs)
+    default_timeout_minutes: int = 15
+    default_confidence_threshold: float = 0.7
+    default_max_response_length: int = 10000
+    default_approval_timeout_hours: int = 24
     
-    # Analyzer Agent
-    analysis_timeout_minutes: int = 15
-    confidence_threshold: float = 0.7
+    # Global opportunity settings
+    global_search_lookback_days: int = 30
+    global_min_match_score: float = 30.0
     
-    # ResponseGenerator Agent
-    max_response_length: int = 10000
-    template_version: str = "v1.0"
-    
-    # RelationshipManager Agent
-    engagement_score_threshold: float = 0.5
-    followup_reminder_days: int = 7
-    
-    # EmailManager Agent
+    # Email settings
     email_provider: str = "gmail"
-    max_retries: int = 3
-    
-    # HumanInTheLoop Agent
-    approval_timeout_hours: int = 24
+    max_email_retries: int = 3
 
 
 @dataclass
@@ -172,7 +157,7 @@ class MonitoringConfig:
     
     # Metrics
     enable_custom_metrics: bool = True
-    metrics_namespace: str = "SourcesSoughtAI"
+    metrics_namespace: str = "GovBizAI"
     
     # Performance monitoring
     enable_xray_tracing: bool = True
@@ -182,13 +167,15 @@ class MonitoringConfig:
 @dataclass
 class FeatureFlags:
     """Feature flags (from AppConfig)"""
-    enable_csv_processing: bool = True
-    enable_opportunity_matching: bool = True
+    # Core platform features
     enable_email_automation: bool = True
     enable_slack_integration: bool = True
-    enable_response_generation: bool = True
     enable_search_indexing: bool = True
     enable_analytics_dashboard: bool = True
+    enable_multi_capability: bool = True
+    
+    # Capability-specific features (managed by capability configs)
+    capability_feature_flags: Dict[str, Dict[str, bool]] = field(default_factory=dict)
 
 
 class Config:
@@ -197,7 +184,7 @@ class Config:
     def __init__(self):
         self.aws = AWSConfig()
         self.ai = AIConfig()
-        self.agents = AgentConfig()
+        self.capabilities = CapabilityConfig()
         self.database = DatabaseConfig()
         self.security = SecurityConfig()
         self.monitoring = MonitoringConfig()
@@ -333,19 +320,15 @@ class Config:
                 self.ai.generation_model = ai_models.get("generation_model", self.ai.generation_model)
                 self.ai.quick_model = ai_models.get("quick_model", self.ai.quick_model)
             
-            # Update agent configuration
-            if isinstance(sam_config, dict):
-                self.agents.sam_csv_url = sam_config.get("csv_url", self.agents.sam_csv_url)
-                self.agents.csv_processing_batch_size = sam_config.get("batch_size", self.agents.csv_processing_batch_size)
-                self.agents.opportunity_finder_schedule = sam_config.get("processing_schedule", self.agents.opportunity_finder_schedule)
+            # Update capability configuration
+            if isinstance(main_config, dict):
+                self.capabilities.enabled_capabilities = main_config.get("enabled_capabilities", ["sources-sought"])
             
-            if isinstance(matching, dict):
-                self.agents.company_naics = matching.get("company_naics", [])
-                self.agents.keywords = matching.get("keywords", [])
-                self.agents.excluded_keywords = matching.get("excluded_keywords", [])
-                self.agents.target_agencies = matching.get("target_agencies", [])
-                self.agents.min_match_score = matching.get("min_match_score", 30.0)
-                self.agents.matching_weights = matching.get("weights", {})
+            if isinstance(agent_config, dict):
+                self.capabilities.default_timeout_minutes = agent_config.get("timeout_minutes", 15)
+                self.capabilities.default_confidence_threshold = agent_config.get("confidence_threshold", 0.7)
+                self.capabilities.default_max_response_length = agent_config.get("max_response_length", 10000)
+                self.capabilities.default_approval_timeout_hours = agent_config.get("approval_timeout_hours", 24)
             
             # Update database configuration
             if isinstance(db_config, dict):
@@ -362,10 +345,15 @@ class Config:
             # Update feature flags
             if isinstance(features, dict):
                 features_data = features.get("features", {})
-                self.features.enable_csv_processing = features_data.get("csv_processing", {}).get("enabled", True)
-                self.features.enable_opportunity_matching = features_data.get("opportunity_matching", {}).get("enabled", True)
                 self.features.enable_email_automation = features_data.get("email_automation", {}).get("enabled", True)
                 self.features.enable_slack_integration = features_data.get("slack_integration", {}).get("enabled", True)
+                self.features.enable_search_indexing = features_data.get("search_indexing", {}).get("enabled", True)
+                self.features.enable_analytics_dashboard = features_data.get("analytics_dashboard", {}).get("enabled", True)
+                self.features.enable_multi_capability = features_data.get("multi_capability", {}).get("enabled", True)
+                
+                # Load capability-specific feature flags
+                capability_flags = features_data.get("capabilities", {})
+                self.features.capability_feature_flags = capability_flags
             
             logger.info("Successfully loaded configuration from AWS AppConfig")
             
@@ -399,7 +387,7 @@ class Config:
     def _update_environment_settings(self):
         """Update settings based on environment"""
         # Update resource prefixes based on environment
-        prefix = f"ss-{self.environment}"
+        prefix = f"govbiz-{self.environment}"
         self.aws.dynamodb_table_prefix = prefix
         self.aws.sqs_queue_prefix = prefix
         self.aws.lambda_function_prefix = prefix
@@ -441,27 +429,46 @@ class Config:
 config = Config()
 
 
-# Agent naming convention mappings
-AGENT_NAMES = {
-    "opportunity_finder": "ss-opportunity-finder",
-    "analyzer": "ss-analyzer", 
-    "response_generator": "ss-response-generator",
-    "relationship_manager": "ss-relationship-manager",
-    "email_manager": "ss-email-manager",
-    "human_loop": "ss-human-loop"
+# Agent naming convention mappings (capability-agnostic base names)
+AGENT_NAME_PATTERNS = {
+    "opportunity_finder": "govbiz-{capability}-opportunity-finder",
+    "analyzer": "govbiz-{capability}-analyzer", 
+    "response_generator": "govbiz-{capability}-response-generator",
+    "relationship_manager": "govbiz-{capability}-relationship-manager",
+    "email_manager": "govbiz-email-manager",  # Shared across capabilities
+    "human_loop": "govbiz-human-loop",  # Shared across capabilities
+    "monitoring": "govbiz-monitoring",  # Shared across capabilities
+}
+
+# Legacy mapping for backward compatibility
+LEGACY_AGENT_NAMES = {
+    "opportunity_finder": "govbiz-sources-sought-opportunity-finder",
+    "analyzer": "govbiz-sources-sought-analyzer", 
+    "response_generator": "govbiz-sources-sought-response-generator",
+    "relationship_manager": "govbiz-sources-sought-relationship-manager",
+    "email_manager": "govbiz-email-manager",
+    "human_loop": "govbiz-human-loop"
 }
 
 
 # AWS resource naming helpers
-def get_agent_function_name(agent_key: str) -> str:
-    """Get Lambda function name for an agent"""
-    agent_name = AGENT_NAMES.get(agent_key, agent_key)
+def get_agent_function_name(agent_key: str, capability: str = "sources-sought") -> str:
+    """Get Lambda function name for an agent with capability context"""
+    if agent_key in AGENT_NAME_PATTERNS:
+        agent_name = AGENT_NAME_PATTERNS[agent_key].format(capability=capability)
+    else:
+        # Fallback to legacy naming for backward compatibility
+        agent_name = LEGACY_AGENT_NAMES.get(agent_key, f"govbiz-{capability}-{agent_key}")
     return config.get_function_name(agent_name)
 
 
-def get_agent_queue_name(agent_key: str) -> str:
-    """Get SQS queue name for an agent"""
-    agent_name = AGENT_NAMES.get(agent_key, agent_key)
+def get_agent_queue_name(agent_key: str, capability: str = "sources-sought") -> str:
+    """Get SQS queue name for an agent with capability context"""
+    if agent_key in AGENT_NAME_PATTERNS:
+        agent_name = AGENT_NAME_PATTERNS[agent_key].format(capability=capability)
+    else:
+        # Fallback to legacy naming for backward compatibility
+        agent_name = LEGACY_AGENT_NAMES.get(agent_key, f"govbiz-{capability}-{agent_key}")
     return config.get_queue_name(f"{agent_name}-queue")
 
 

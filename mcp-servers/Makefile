@@ -1,11 +1,11 @@
-# Sources Sought AI - MCP Servers Makefile
+# GovBiz AI - MCP Servers Makefile
 # Provides convenient commands for managing the MCP server ecosystem
 
 .PHONY: help build start stop restart logs test clean deploy health setup
 
 # Default target
 help:
-	@echo "Sources Sought AI - MCP Servers Management"
+	@echo "GovBiz AI - MCP Servers Management"
 	@echo ""
 	@echo "Available commands:"
 	@echo "  setup      - Initial setup with environment validation"
@@ -31,7 +31,7 @@ help:
 
 # Initial setup
 setup:
-	@echo "🚀 Setting up Sources Sought AI MCP Servers..."
+	@echo "🚀 Setting up GovBiz AI MCP Servers..."
 	@./scripts/setup.sh
 
 # Environment validation

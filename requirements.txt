@@ -1,4 +1,4 @@
-# Core dependencies for Sources Sought AI system
+# Core dependencies for GovBiz.ai government contracting platform
 boto3>=1.34.0
 botocore>=1.34.0
 

@@ -1,6 +1,6 @@
-# Sources Sought AI - MCP Servers Deployment Guide
+# GovBiz AI - MCP Servers Deployment Guide
 
-This guide covers deployment of the complete 10-server MCP architecture for the Sources Sought AI system.
+This guide covers deployment of the complete 10-server MCP architecture for the GovBiz AI system.
 
 ## Quick Start
 
@@ -15,8 +15,8 @@ This guide covers deployment of the complete 10-server MCP architecture for the 
 
 ```bash
 # Clone the repository
-git clone https://github.com/tjaddison/sources-sought-ai.git
-cd sources-sought-ai/mcp-servers
+git clone https://github.com/tjaddison/govbiz-ai.git
+cd govbiz-ai/mcp-servers
 
 # Copy environment template
 cp .env.example .env
@@ -109,18 +109,18 @@ docker-compose ps
 The system requires these AWS services:
 
 1. **DynamoDB Tables**:
-   - `sources-sought-opportunities`
-   - `sources-sought-companies`
-   - `sources-sought-responses`
-   - `sources-sought-events`
-   - `sources-sought-contacts`
+   - `govbiz-opportunities`
+   - `govbiz-companies`
+   - `govbiz-responses`
+   - `govbiz-events`
+   - `govbiz-contacts`
    - `sources-sought-relationships`
 
 2. **Secrets Manager Secrets**:
-   - `sources-sought-ai/email`
-   - `sources-sought-ai/slack`
-   - `sources-sought-ai/anthropic`
-   - `sources-sought-ai/sam-gov`
+   - `govbiz-ai/email`
+   - `govbiz-ai/slack`
+   - `govbiz-ai/anthropic`
+   - `govbiz-ai/sam-gov`
 
 3. **AppConfig Application**:
    - Application: `sources-sought-ai`
@@ -161,7 +161,7 @@ Required IAM permissions for the MCP servers:
         "secretsmanager:GetSecretValue",
         "secretsmanager:DescribeSecret"
       ],
-      "Resource": "arn:aws:secretsmanager:*:*:secret:sources-sought-ai/*"
+      "Resource": "arn:aws:secretsmanager:*:*:secret:govbiz-ai/*"
     },
     {
       "Effect": "Allow",
@@ -172,7 +172,7 @@ Required IAM permissions for the MCP servers:
         "appconfig:GetConfiguration",
         "appconfig:StartConfigurationSession"
       ],
-      "Resource": "arn:aws:appconfig:*:*:application/sources-sought-ai/*"
+      "Resource": "arn:aws:appconfig:*:*:application/govbiz-ai/*"
     },
     {
       "Effect": "Allow",

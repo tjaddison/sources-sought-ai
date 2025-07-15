@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Sources Sought AI - Multi-Agent System Infrastructure'
+Description: 'GovBiz.ai - Government Contracting Automation Platform Infrastructure'
 
 Parameters:
   Environment:
@@ -10,7 +10,7 @@ Parameters:
   
   ProjectName:
     Type: String
-    Default: sources-sought-ai
+    Default: govbiz-ai
     Description: Project name for resource naming
   
   SlackBotToken:

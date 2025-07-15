@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   # Email MCP Server
-  email-mcp:
+  govbiz-email-mcp:
     build:
-      context: ./sources-sought-email-mcp
+      context: ./govbiz-email-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-email-mcp
+    container_name: govbiz-email-mcp
     environment:
       - EMAIL_USERNAME=${EMAIL_USERNAME}
       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
@@ -16,14 +16,14 @@ services:
       - IMAP_PORT=${IMAP_PORT:-993}
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # SAM.gov MCP Server
-  sam-mcp:
+  govbiz-sam-mcp:
     build:
-      context: ./sources-sought-sam-mcp
+      context: ./govbiz-sam-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-sam-mcp
+    container_name: govbiz-sam-mcp
     environment:
       - SAM_API_KEY=${SAM_API_KEY}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
@@ -31,34 +31,34 @@ services:
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Document Generation MCP Server
-  docgen-mcp:
+  govbiz-docgen-mcp:
     build:
-      context: ./sources-sought-docgen-mcp
+      context: ./govbiz-docgen-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-docgen-mcp
+    container_name: govbiz-docgen-mcp
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Search & Analysis MCP Server
-  search-mcp:
+  govbiz-search-mcp:
     build:
-      context: ./sources-sought-search-mcp
+      context: ./govbiz-search-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-search-mcp
+    container_name: govbiz-search-mcp
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Slack Integration MCP Server
-  slack-mcp:
+  govbiz-slack-mcp:
     build:
-      context: ./sources-sought-slack-mcp
+      context: ./govbiz-slack-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-slack-mcp
+    container_name: govbiz-slack-mcp
     environment:
       - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
       - SLACK_SIGNING_SECRET=${SLACK_SIGNING_SECRET}
@@ -67,56 +67,56 @@ services:
       - "8000:8000"  # Webhook port
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Database Operations MCP Server
-  database-mcp:
+  govbiz-database-mcp:
     build:
-      context: ./sources-sought-database-mcp
+      context: ./govbiz-database-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-database-mcp
+    container_name: govbiz-database-mcp
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # AWS Services MCP Server
-  aws-mcp:
+  govbiz-aws-mcp:
     build:
-      context: ./sources-sought-aws-mcp
+      context: ./govbiz-aws-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-aws-mcp
+    container_name: govbiz-aws-mcp
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Relationship Management MCP Server
-  crm-mcp:
+  govbiz-crm-mcp:
     build:
-      context: ./sources-sought-crm-mcp
+      context: ./govbiz-crm-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-crm-mcp
+    container_name: govbiz-crm-mcp
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Monitoring & Alerts MCP Server
-  monitoring-mcp:
+  govbiz-monitoring-mcp:
     build:
-      context: ./sources-sought-monitoring-mcp
+      context: ./govbiz-monitoring-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-monitoring-mcp
+    container_name: govbiz-monitoring-mcp
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -125,32 +125,32 @@ services:
       - "9090:9090"  # Prometheus metrics port
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Prompt Catalog MCP Server
-  prompts-mcp:
+  govbiz-prompts-mcp:
     build:
-      context: ./sources-sought-prompts-mcp
+      context: ./govbiz-prompts-mcp
       dockerfile: Dockerfile
-    container_name: sources-sought-prompts-mcp
+    container_name: govbiz-prompts-mcp
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Redis for caching (optional)
   redis:
     image: redis:7-alpine
-    container_name: sources-sought-redis
+    container_name: govbiz-redis
     ports:
       - "6379:6379"
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Prometheus for monitoring (optional)
   prometheus:
     image: prom/prometheus:latest
-    container_name: sources-sought-prometheus
+    container_name: govbiz-prometheus
     ports:
       - "9091:9090"
     volumes:
@@ -163,12 +163,12 @@ services:
       - '--web.enable-lifecycle'
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
   # Grafana for dashboards (optional)
   grafana:
     image: grafana/grafana:latest
-    container_name: sources-sought-grafana
+    container_name: govbiz-grafana
     ports:
       - "3000:3000"
     environment:
@@ -177,10 +177,10 @@ services:
       - grafana-data:/var/lib/grafana
     restart: unless-stopped
     networks:
-      - sources-sought-network
+      - govbiz-network
 
 networks:
-  sources-sought-network:
+  govbiz-network:
     driver: bridge
 
 volumes:
